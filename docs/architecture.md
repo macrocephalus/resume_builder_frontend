@@ -69,7 +69,7 @@ src/
         progress/              in-progress panel, failed panel
         editor/                has-draft layout, header, the form, blocks, save bar
         questions/             questions panel and the cards by kind
-        preview/               the A4 sheet
+        preview/               the A4 sheet (laid out by model/sheet.ts, like the PDF)
         match/                 match panel
         pdf/                   download button
       api/                     useSaveCv, useAnswerQuestion, useSkipQuestion, useDownloadPdf
@@ -310,7 +310,10 @@ There is no global store. Context is not used for app state; the current user is
 `['me']` query.
 
 The tab of the CV screen is in the URL, so a reload and a shared link open the same panel. It is
-written with `replace`, so Back leaves the CV screen instead of walking through tabs.
+written with `replace`, so Back leaves the CV screen instead of walking through tabs. Both columns
+are always rendered and CSS hides one below 980 px, so switching keeps the form's unsaved values;
+from 980 px the editor is always shown and the side panel shows the chosen side tab, or Preview
+when the tab is Edit (`model/tabs.ts`).
 
 ## 8. Mock mode
 

@@ -146,7 +146,8 @@ a `Badge` or `Tag` next to `Pill`.
 | `EmptyState`, `ErrorState` | `ErrorState` has Retry | — |
 | `StepList` | numbered steps between thin lines ("how it works" on the auth screen) | — |
 | `ConfirmButton` | two-step inline confirm (delete) | — |
-| `SegmentedControl` | tabs: Edit · Questions N · Match · Preview | **yes** |
+| `SegmentedControl` | tabs: Edit · Questions N · Match · Preview; a `fieldset` of `aria-pressed` buttons | **yes** |
+| `Sheet` | the white A4 preview page in Liberation Sans; at least A4 tall, grows with content; the text inside takes classes from `sheetText.ts` (name, contacts, heading, item, meta, bullets), sized in `cqw` like the PDF | — |
 | `FloatingBar` | sticky bottom bar with `env(safe-area-inset-bottom)` (save bar shell) | **yes** |
 | `GlassCard` | auth card | **yes** |
 
@@ -165,7 +166,9 @@ our own; sizes 16 / 20; decorative icons get `aria-hidden`.
 ## Screen layout
 
 - **≥ 980 px:** two columns. Editor on the left (`1.08fr`); side panel on the right (`.92fr`)
-  with the Questions / Match / Preview tabs.
+  with the Questions / Match / Preview tabs. The side panel sticks under the top bar and scrolls
+  on its own. The tabs show here only when there is more than one side panel (Preview alone
+  needs no switch).
 - **< 980 px:** one column.
   - The `SegmentedControl` (Edit · Questions N · Match · Preview) sticks to the top under the top
     bar, and one panel shows at a time.
