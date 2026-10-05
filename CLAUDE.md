@@ -14,6 +14,7 @@ contract: `docs/api.md`; statuses: `docs/cv-statuses.md`.
 ## Commands
 
 - `pnpm dev` — dev server; `/api` is proxied to the backend on `localhost:3000`
+- `pnpm dev:mock` — dev server in mock mode: MSW answers `/api` in the browser, no backend needed
 - `pnpm typecheck` — `tsc -b`
 - `pnpm lint` — oxlint (layer boundaries, `import/no-cycle`, `jsx-a11y`)
 - `pnpm format` / `pnpm format:check` — Prettier with `prettier-plugin-tailwindcss` (write / check)

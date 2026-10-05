@@ -25,7 +25,9 @@ spec.
   - Content, panels, inputs and the A4 preview sheet stay solid.
   - At most 3–4 glass surfaces on screen at once.
   - Glass is never animated (no animated blur).
-- **Text on glass** is `ink` or `accent` only, never `muted`.
+- **Text on glass** is `ink` or `accent` only, never `muted`. One exception: a field error inside
+  the auth card is `bad`, which `src/index.test.ts` checks for AA like the other two. `Field`
+  labels and hints are `ink` for this reason.
   - It must pass WCAG AA (4.5:1) over the lightest and the darkest shape.
   - If it fails, raise the glass opacity. Don't change the text colour.
 
@@ -65,6 +67,8 @@ Defined once in `src/index.css` with Tailwind v4 `@theme`.
   - Utilities: `font-display`, `font-sans` (the default), `font-mono`, `font-paper`. `h1` and
     `h2` get the display font and their sizes from the base layer, so a screen writes a plain
     heading.
+- **Links:** a plain `<a>` / `<Link>` is `accent` and underlined on hover, set in the base layer,
+  so feature code writes links without colour classes.
 - **Radii:** 6 / 8 / 999 px (`rounded-sm` / `rounded-md` / `rounded-full`). **Borders:** flat
   1 px. **Focus:** 2 px `accent` outline on `:focus-visible`, set once in the base layer.
 - **Page width:** `max-w-page` (1120 px).
@@ -132,6 +136,7 @@ a `Badge` or `Tag` next to `Pill`.
 | `Notice` | `tone`; optional action | — |
 | `ProgressBar` | indeterminate or `value`; `tone` | — |
 | `EmptyState`, `ErrorState` | `ErrorState` has Retry | — |
+| `StepList` | numbered steps between thin lines ("how it works" on the auth screen) | — |
 | `ConfirmButton` | two-step inline confirm (delete) | — |
 | `SegmentedControl` | tabs: Edit · Questions N · Match · Preview | **yes** |
 | `FloatingBar` | sticky bottom bar with `env(safe-area-inset-bottom)` (save bar shell) | **yes** |

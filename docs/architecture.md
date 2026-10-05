@@ -25,11 +25,12 @@ and follow the placement rules in §3 and §10.
 
 ```
 src/
-  main.tsx                     entry: mock-mode gate, creates the QueryClient and the router
+  main.tsx                     entry: mock-mode gate, createApp(), renders App
   index.css                    Tailwind import, @theme tokens, the glass utility
 
   app/                         LAYER 1: wiring; knows every layer below
-    App.tsx                    QueryClientProvider + RouterProvider; takes the router as a prop
+    App.tsx                    QueryClientProvider + RouterProvider; takes the client and the router
+    createApp.ts               a fresh QueryClient + router, wired for 401; used by main and tests
     router.tsx                 createAppRouter(queryClient): the route table
     providers/
       queryClient.ts           createQueryClient({ onUnauthorized }): defaults, 401 handling
@@ -39,6 +40,7 @@ src/
       TopBar.tsx               glass bar: product name, email, Log out, navigation progress line
       Backdrop.tsx             pastel shapes; drifts when a route handle asks for it
       RouteError.tsx           the ErrorBoundary element: ErrorState with Retry, or Not found
+      NotFound.tsx             the Not found view, for the * route and for a 404
     routes/                    one thin module per route: loader, Component, ErrorBoundary
       login.tsx
       signup.tsx
@@ -137,10 +139,11 @@ Rules on top of the table:
 - **A feature never imports another feature.** If two features need the same thing, it moves down:
   to `entities` when it knows about a CV, to the `src/shared` layer when it knows nothing about the
   domain. It moves when the second user appears, not before.
-- **Enforcement.** oxlint checks the four layers, the `../` ban, cycles and the feature-to-feature
-  ban (`.oxlintrc.json`). A new feature folder needs its own override there; without one it cannot
-  import from `@/features` at all. The rules for `mocks` and `tests` are added with ticket 03, when
-  those folders first appear. "What `app` takes from a feature" is a convention, not a lint rule.
+- **Enforcement.** oxlint checks the four layers, the `../` ban, cycles, the feature-to-feature
+  ban, and that no layer imports `src/mocks` or `src/tests` while `src/mocks` imports nothing from
+  the layers (`.oxlintrc.json`). A new feature folder needs its own override there; without one it
+  cannot import from `@/features` at all. "What `app` takes from a feature" is a convention, not a
+  lint rule.
 
 ## 3. Inside a feature and an entity
 
@@ -173,11 +176,14 @@ Every feature and every entity uses the same three segments, created when first 
 | `/` | `cv-list.tsx` | `cv-list` → `CvListScreen` | ensures the CV list |
 | `/cvs/new` | `cv-new.tsx` | `cv-create` → `CvCreateScreen` | — |
 | `/cvs/:cvId` | `cv.tsx` | `cv-editor` → `CvScreen` | ensures the CV detail |
-| `*` | `not-found.tsx` | Not found | — |
+| `*` | `not-found.tsx` | `NotFound` (`app/layout`) | — (a child of `protected`) |
 
 - **The router is built by a factory.** `createAppRouter(queryClient)` returns the router, and each
-  route module exports its loader as a function of the client. `main.tsx` and `renderApp()` in the
-  tests each create their own client, so no cache leaks between tests.
+  route module exports its loader as a function of the client. `createApp()` makes a fresh client
+  and router and wires the `401` handler; `main.tsx` and `renderApp()` in the tests each call it,
+  so no cache leaks between tests.
+- **Unknown paths sit behind login.** The `*` route is a child of `protected`, so an anonymous
+  deep link to a screen that has no route yet still goes through login and comes back.
 - **Route modules are thin.** A module connects a path to a screen: it calls
   `queryClient.ensureQueryData(...)` in the loader, renders the feature's screen and sets the
   `ErrorBoundary`. It holds no UI of its own and no logic beyond redirects.
@@ -185,8 +191,10 @@ Every feature and every entity uses the same three segments, created when first 
   module and its feature load on first visit.
 - **URLs are spelled in one file.** `src/shared/config/paths.ts` exports the path patterns for the
   route table and builder functions for links and redirects (`paths.cv(id)`,
-  `paths.newCv({ fromCvId, role })`, `paths.login(next)`). No other file contains a URL string.
-  It also holds the check that a `next` return address is a same-origin relative path.
+  `paths.newCv({ fromCvId, role })`, `paths.login(next)`) and the API endpoints (`apiPaths`). No
+  other file of the app contains a URL string; `src/mocks` spells the endpoints itself, because it
+  may not import the layers. It also holds `safeNext`, the check that a `next` return address is a
+  same-origin relative path.
 - **Route handle.** A route asks for the drifting backdrop with `handle: { backdrop: 'drift' }`;
   `Backdrop` reads it with `useMatches()`.
 - **Errors.** A loader error reaches `RouteError`, which shows `ErrorState` with Retry (reset the
@@ -228,12 +236,17 @@ Context or a store.
   query. It is not a layer.
 - Whether a user is signed in is known only from `GET /api/auth/me`. The frontend never reads,
   stores or decodes the token; it lives in an `httpOnly` cookie.
+- `authQueries.me()` resolves to the user or to `null`: its own `401` is the normal answer for an
+  anonymous visitor, not an error. The login, sign-up and protected loaders redirect on it.
 - A `401` is handled in one place. `createQueryClient({ onUnauthorized })` sets the query and
-  mutation cache error handlers; on an `ApiError` with status `401` they call `onUnauthorized`,
-  which `app` wires to "drop `['me']` and revalidate the router". The protected loader then
-  redirects to login with `next`. The `me` query's own `401` is the normal answer for an anonymous
-  visitor and is handled by that loader directly.
-- Log out calls the API, then clears the whole query cache.
+  mutation cache error handlers; on an `ApiError` with code `UNAUTHORIZED` they call
+  `onUnauthorized`, which `createApp()` wires to "empty the cache, set `['me']` to `null` and
+  revalidate the router". The protected loader then redirects to login with `next`. A failed
+  login (`INVALID_CREDENTIALS`) is not a lost session and is left to the form.
+- Log in and sign up empty the cache before storing the new user, so nothing a previous user of
+  the tab loaded is shown.
+- Log out calls the API, sets `['me']` to `null`, opens login, and only then empties the cache, so
+  no signed-in screen refetches on its way out.
 
 ### Error texts
 
@@ -289,6 +302,8 @@ Why it is built this way: [ADR 0003](adr/0003-mock-mode-outside-the-layers.md).
   `if (import.meta.env.MODE === 'mock') await import('@/mocks/browser')`. The condition is a
   build-time constant, so the plain dev server and the production build never load the mocks, and
   the production bundle does not contain them. No environment variable switches it on.
+- **The service worker script** is served by the `msw/vite` plugin in `worker-only` mode, which
+  `vite.config.ts` adds only in mock mode; nothing generated is committed to `public/`.
 - **Isolation.** `src/mocks` imports only the contract package. No layer of the app imports
   `src/mocks`. The app code is the same in both modes.
 - **Behaviour.** The handlers act like the API: ownership (`404`), allowed actions per status
@@ -301,9 +316,10 @@ Why it is built this way: [ADR 0003](adr/0003-mock-mode-outside-the-layers.md).
 ## 9. Tests
 
 - **The main seam is the whole app at the network boundary.** `renderApp(path)` in `src/tests`
-  builds a fresh `QueryClient`, the real router through `createAppRouter` and the real API client,
-  with the handlers from `src/mocks` answering through `mocks/server.ts`. Each test starts from an
-  empty mock store.
+  builds the app with `createApp()` (a fresh `QueryClient`, the real router and API client), with
+  the handlers from `src/mocks` answering through `mocks/server.ts`. Retries are off, so a failure
+  shows at once. Calling it again in the same test is a page reload: the previous app is unmounted
+  and the mock data stays. Each test starts from an empty mock store.
 - **One file per user flow** in `src/tests`: auth, list, generation, intake, editor, questions,
   PDF, resilience.
 - A test does what a user does: it clicks and types through the DOM and asserts on visible text,
