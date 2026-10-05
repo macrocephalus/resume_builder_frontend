@@ -6,7 +6,7 @@ that captures screens at phone and desktop width.
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** done
 
 **Implements:** `.scratch/frontend-first/issues/03-frontend-foundation-auth.md` (the tooling and design-token part)
 
