@@ -9,7 +9,8 @@ export type FieldControlProps = {
 }
 
 type FieldProps = {
-  label: string
+  /** Text, plus an optional marker (like "missing") that becomes part of the name. */
+  label: ReactNode
   hint?: string
   /** Shown under the control and announced with it. */
   error?: string
