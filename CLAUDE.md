@@ -68,7 +68,7 @@ src/
   sit outside them: `docs/adr/0003-mock-mode-outside-the-layers.md`.
 
 Two different "shared": the **`src/shared` layer** (this app's primitives and client) and the
-**`shared` workspace package** (the contract: Zod schemas, `isInProgress`, `computeMatch`). Always
+**`@cv/shared` package** (the contract: Zod schemas, `isInProgress`, `computeMatch`). Always
 say which one you mean.
 
 Files: one component per `PascalCase.tsx`, hooks in `useX.ts`, **named exports only** (route
@@ -87,7 +87,7 @@ next to its file (`X.test.tsx`); a test of a user flow goes to `src/tests/`.
   the component that uses it.
 - **Treat API responses as untrusted:** parse them with the Zod schemas before use.
 - **Generation is a background job.** Start it with a mutation, then poll
-  `GET /api/cvs/statuses` with `refetchInterval` while any CV `isInProgress` (from the `shared`
+  `GET /api/cvs/statuses` with `refetchInterval` while any CV `isInProgress` (from the `@cv/shared`
   package); when one leaves that group, invalidate its detail and the list. Never poll the full
   CV. The CV id is in the URL, so a reload resumes polling — don't rely on in-memory state or
   streaming.

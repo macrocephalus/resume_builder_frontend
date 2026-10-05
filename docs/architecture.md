@@ -14,8 +14,8 @@ Related documents, none of which this file repeats:
 | Short rules an agent must not break | [../CLAUDE.md](../CLAUDE.md) |
 
 Two things are called "shared". The **`src/shared` layer** is this app's lowest layer. The
-**contract package** is the `shared` workspace package with the Zod schemas, the status machine
-and `computeMatch` (imported as `@cv/shared` once root ticket 15 lands). This file always says
+**contract package** is the `@cv/shared` workspace package (folder `shared/` at the repo root)
+with the Zod schemas, the status machine and `computeMatch`, imported `from '@cv/shared'`. This file always says
 which one it means.
 
 ## 1. The tree
