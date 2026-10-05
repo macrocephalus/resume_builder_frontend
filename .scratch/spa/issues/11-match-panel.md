@@ -7,6 +7,8 @@ where, and the result updates as they type or answer.
 
 **Status:** ready-for-agent
 
+**Implements:** `.scratch/frontend-first/issues/11-match-panel.md`
+
 **Spec:** [../spec.md](../spec.md)
 
 - [ ] CV header shows the match bar "Covers N of M requirements" (in `entities/cv`, shared with the list figure)
@@ -16,5 +18,3 @@ where, and the result updates as they type or answer.
 - [ ] Tests: typing a missing keyword into a bullet turns its requirement covered
 - [ ] The look follows `frontend/docs/design.md`; screenshots at 390 px and 1280 px in mock mode are checked against the prototype and mentioned in the report
 - [ ] `pnpm typecheck && pnpm lint && pnpm build`, the format check and the tests pass
-
-**Notes:** Covers the same flow as root ticket `.scratch/frontend-first/issues/11`; this ticket is the one to implement.

@@ -8,6 +8,8 @@ for the user.
 
 **Status:** ready-for-agent
 
+**Implements:** `.scratch/frontend-first/issues/03-frontend-foundation-auth.md` (the tooling and design-token part)
+
 **Spec:** [../spec.md](../spec.md)
 
 - [ ] `@/` resolves to the source root in TypeScript, Vite and the test runner

@@ -7,6 +7,8 @@ generated from the same source and facts, without re-entering anything.
 
 **Status:** ready-for-agent
 
+**Implements:** `.scratch/frontend-first/issues/12-suggested-roles.md`
+
 **Spec:** [../spec.md](../spec.md)
 
 - [ ] CV header shows up to three suggested-role chips
@@ -17,4 +19,4 @@ generated from the same source and facts, without re-entering anything.
 - [ ] The look follows `frontend/docs/design.md`; screenshots at 390 px and 1280 px in mock mode are checked against the prototype and mentioned in the report
 - [ ] `pnpm typecheck && pnpm lint && pnpm build`, the format check and the tests pass
 
-**Notes:** Covers the same flow as root ticket `.scratch/frontend-first/issues/12`; this ticket is the one to implement. The chips sit in the has-draft header, which ticket 07 builds; if 07 is not done yet, build the header minimal here.
+**Notes:** The chips sit in the has-draft header, which ticket 07 builds; if 07 is not done yet, build the header minimal here.

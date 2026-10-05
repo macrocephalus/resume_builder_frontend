@@ -8,6 +8,8 @@ instead of overwriting newer work.
 
 **Status:** ready-for-agent
 
+**Implements:** `.scratch/frontend-first/issues/07-draft-editor.md`
+
 **Spec:** [../spec.md](../spec.md)
 
 - [ ] Has-draft CV page: header (editable title, target role, status pill) and the editor; two columns from 980 px (`1.08fr` / `.92fr`); below it a glass `SegmentedControl`, sticky under the top bar, switches panels (later tickets add Questions and Preview to it)
@@ -24,5 +26,3 @@ instead of overwriting newer work.
 - [ ] Tests: edit and save, cancel, add / remove / reorder an item, rename only, version conflict notice and reload, empty item dropped, unsaved-changes guard
 - [ ] The look follows `frontend/docs/design.md`; screenshots at 390 px and 1280 px in mock mode are checked against the prototype and mentioned in the report
 - [ ] `pnpm typecheck && pnpm lint && pnpm build`, the format check and the tests pass
-
-**Notes:** Covers the same flow as root ticket `.scratch/frontend-first/issues/07`; this ticket is the one to implement.

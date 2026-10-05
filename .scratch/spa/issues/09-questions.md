@@ -8,6 +8,8 @@ closing the last question makes the CV ready.
 
 **Status:** ready-for-agent
 
+**Implements:** `.scratch/frontend-first/issues/09-questions.md`
+
 **Spec:** [../spec.md](../spec.md)
 
 - [ ] Questions panel with the open count in its tab (only while the CV needs input); each card says which part of the CV it is about
@@ -22,5 +24,3 @@ closing the last question makes the CV ready.
 - [ ] Tests: validation per kind, answer updates the field, skip, `confirm` has no Skip, last question → ready, save-before-answer, deleted item removes its question
 - [ ] The look follows `frontend/docs/design.md`; screenshots at 390 px and 1280 px in mock mode are checked against the prototype and mentioned in the report
 - [ ] `pnpm typecheck && pnpm lint && pnpm build`, the format check and the tests pass
-
-**Notes:** Covers the same flow as root ticket `.scratch/frontend-first/issues/09`; this ticket is the one to implement.

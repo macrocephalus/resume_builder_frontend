@@ -723,12 +723,10 @@ co-location. The frontend has no tests yet, so this spec sets its pattern.
 
 ## Further Notes
 
-- **Overlap with the root tracker.** Root tickets 03–13 (`.scratch/frontend-first/issues/`, with
-  `Package: frontend`) cover the same user flow from the cross-project spec. This spec is the
-  complete frontend view: it adds the design system, the architecture, the tooling and the visual
-  check. When `/to-tickets` cuts frontend tickets from it, either replace root tickets 03–13 or
-  link each new ticket to the root ticket it implements. Don't keep two live tickets for the same
-  work.
+- **Link to the root tracker.** Root tickets 03–13 (`.scratch/frontend-first/issues/`) describe
+  the same user flow from the product side. The tickets cut from this spec take them over: each
+  carries an `Implements:` line, and the root tickets are `moved` with a `Moved to:` line. Only
+  the tickets here are implemented.
 - **Contract readiness.** `api.md` in the root still shows the old five-block draft and
   `roleNote`. The frontend builds against the updated contract from the root spec, which root
   ticket 02 brings into `shared` and the docs. Frontend tickets that need schemas from root

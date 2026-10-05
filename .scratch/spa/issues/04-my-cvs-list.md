@@ -8,6 +8,8 @@ an empty state when there are none, and can delete a CV. Mock mode gets its CV s
 
 **Status:** ready-for-agent
 
+**Implements:** `.scratch/frontend-first/issues/04-cv-list.md`
+
 **Spec:** [../spec.md](../spec.md)
 
 - [ ] Mock mode stores CVs per user in browser storage and seeds nothing for a new account; another user's CV is invisible (`404`)
@@ -22,5 +24,3 @@ an empty state when there are none, and can delete a CV. Mock mode gets its CV s
 - [ ] Tests: empty state, rows for CVs in different statuses with the right labels and actions, delete with confirmation
 - [ ] The look follows `frontend/docs/design.md`; screenshots at 390 px and 1280 px in mock mode are checked against the prototype and mentioned in the report
 - [ ] `pnpm typecheck && pnpm lint && pnpm build`, the format check and the tests pass
-
-**Notes:** Covers the same flow as root ticket `.scratch/frontend-first/issues/04`; this ticket is the one to implement.

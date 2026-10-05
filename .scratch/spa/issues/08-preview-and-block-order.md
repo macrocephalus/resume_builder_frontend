@@ -7,6 +7,8 @@ preview follows that order and never shows an empty block or field.
 
 **Status:** ready-for-agent
 
+**Implements:** `.scratch/frontend-first/issues/08-preview-and-block-order.md`
+
 **Spec:** [../spec.md](../spec.md)
 
 - [ ] Preview panel renders an A4-proportioned sheet from the unsaved form values, in Liberation Sans with sizes in container-query units and the paper tokens; it updates slightly after typing so input stays responsive
@@ -17,5 +19,3 @@ preview follows that order and never shows an empty block or field.
 - [ ] Tests: reorder blocks → preview order changes and persists after save; a draft with only a name shows no block headings
 - [ ] The look follows `frontend/docs/design.md`; screenshots at 390 px and 1280 px in mock mode are checked against the prototype and mentioned in the report
 - [ ] `pnpm typecheck && pnpm lint && pnpm build`, the format check and the tests pass
-
-**Notes:** Covers the same flow as root ticket `.scratch/frontend-first/issues/08`; this ticket is the one to implement.

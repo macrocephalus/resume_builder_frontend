@@ -8,6 +8,8 @@ and the route protection every later screen stands on.
 
 **Status:** ready-for-agent
 
+**Implements:** `.scratch/frontend-first/issues/03-frontend-foundation-auth.md`
+
 **Spec:** [../spec.md](../spec.md)
 
 - [ ] A dedicated dev command starts the app in mock mode; the plain dev command and the production build cannot switch it on, and mock code is not in the production bundle
@@ -26,5 +28,3 @@ and the route protection every later screen stands on.
 - [ ] Tests through the real router, providers and API client against the mock handlers: sign up, taken email, login failure, redirect with return address and back, `401` handling, signed-in user on login, log out
 - [ ] The look follows `frontend/docs/design.md`; screenshots at 390 px and 1280 px in mock mode are checked against the prototype and mentioned in the report
 - [ ] `pnpm typecheck && pnpm lint && pnpm build`, the format check and the tests pass
-
-**Notes:** Covers the same flow as root ticket `.scratch/frontend-first/issues/03`; this ticket is the one to implement.

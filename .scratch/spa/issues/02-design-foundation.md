@@ -8,6 +8,8 @@ that captures screens at phone and desktop width.
 
 **Status:** ready-for-agent
 
+**Implements:** `.scratch/frontend-first/issues/03-frontend-foundation-auth.md` (the tooling and design-token part)
+
 **Spec:** [../spec.md](../spec.md)
 
 - [ ] Semantic tokens from `frontend/docs/design.md` are defined in `@theme` (surfaces, text, lines, tones with soft variants, paper, backdrop, glass); the default Tailwind palette is off, so a palette class such as `bg-blue-500` produces no style; breakpoints are `md` 760 px and `lg` 980 px

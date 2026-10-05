@@ -9,6 +9,8 @@ the flow runs from sign-up to a generated draft (shown as a placeholder until th
 
 **Status:** ready-for-agent
 
+**Implements:** `.scratch/frontend-first/issues/05-create-and-generation.md`
+
 **Spec:** [../spec.md](../spec.md)
 
 - [ ] New CV form: target role (required), "About the role (optional)" up to 5 000 chars with a hint, CV language as a native select with native names (default English), background text area with a counter and the limits; validation from the contract schema, errors next to fields
@@ -24,5 +26,3 @@ the flow runs from sign-up to a generated draft (shown as a placeholder until th
 - [ ] Tests: create → progress → draft appears without reload; each of the six statuses shows the right panel and actions; limit error on submit; retry
 - [ ] The look follows `frontend/docs/design.md`; screenshots at 390 px and 1280 px in mock mode are checked against the prototype and mentioned in the report
 - [ ] `pnpm typecheck && pnpm lint && pnpm build`, the format check and the tests pass
-
-**Notes:** Covers the same flow as root ticket `.scratch/frontend-first/issues/05`; this ticket is the one to implement.

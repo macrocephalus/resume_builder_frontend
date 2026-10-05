@@ -7,6 +7,8 @@ where they can check and fix it before generating. Bad files produce clear messa
 
 **Status:** ready-for-agent
 
+**Implements:** `.scratch/frontend-first/issues/06-pdf-intake.md`
+
 **Spec:** [../spec.md](../spec.md)
 
 - [ ] "Upload PDF" sends the file to the ingest endpoint; the returned text fills the text area with a note such as "Extracted 3 120 chars from 2 pages, check below"; the CV is created with source type `pdf` and the filename
@@ -16,5 +18,3 @@ where they can check and fix it before generating. Bad files produce clear messa
 - [ ] Tests: successful upload fills the text area; wrong type, too large, scan
 - [ ] The look follows `frontend/docs/design.md`; screenshots at 390 px and 1280 px in mock mode are checked against the prototype and mentioned in the report
 - [ ] `pnpm typecheck && pnpm lint && pnpm build`, the format check and the tests pass
-
-**Notes:** Covers the same flow as root ticket `.scratch/frontend-first/issues/06`; this ticket is the one to implement.
