@@ -2,6 +2,7 @@ import { API_LIMITS } from '@cv/shared'
 import type { z } from 'zod'
 import { ApiError } from '@/shared/api/ApiError'
 import { errorText } from '@/shared/api/errorText'
+import { formatWait } from '@/shared/lib/format'
 
 const { min, max } = API_LIMITS.password
 
@@ -20,11 +21,6 @@ export function credentialsIssueText(issue: z.core.$ZodRawIssue): string | undef
 
 /** Where a failed sign-up or login is shown: next to a field, or above the form. */
 export type AuthFailure = { field: 'email' | 'password' | null; message: string }
-
-function minutes(seconds: number | null): string {
-  const count = Math.max(1, Math.ceil((seconds ?? 60) / 60))
-  return count === 1 ? '1 minute' : `${count} minutes`
-}
 
 /** The server's message for one field of a `400 VALIDATION_ERROR`, if it sent one. */
 function fieldMessage(error: ApiError, field: 'email' | 'password'): string | undefined {
@@ -48,7 +44,7 @@ export function authFailure(error: unknown): AuthFailure {
     case 'RATE_LIMITED':
       return {
         field: null,
-        message: `Too many attempts. Try again in ${minutes(error.retryAfter)}.`,
+        message: `Too many attempts. Try again in ${formatWait(error.retryAfter)}.`,
       }
     case 'VALIDATION_ERROR':
       for (const field of ['email', 'password'] as const) {
