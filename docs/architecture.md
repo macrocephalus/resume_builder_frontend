@@ -38,7 +38,7 @@ src/
       RootLayout.tsx           Backdrop + outlet
       ProtectedLayout.tsx      TopBar + outlet, for signed-in routes
       TopBar.tsx               glass bar: product name, email, Log out, navigation progress line
-      Backdrop.tsx             pastel shapes; drifts when a route handle asks for it
+      Backdrop.tsx             pastel shapes; drift while a data-backdrop="drift" element is shown
       RouteError.tsx           a route's ErrorBoundary: ErrorState with Retry, or Not found
       PageError.tsx            RouteError framed as a page, for errors above every layout
       PageSkeleton.tsx         the router's HydrateFallback: the cold-open skeleton
@@ -197,8 +197,6 @@ Every feature and every entity uses the same three segments, created when first 
   other file of the app contains a URL string; `src/mocks` spells the endpoints itself, because it
   may not import the layers. It also holds `safeNext`, the check that a `next` return address is a
   same-origin relative path.
-- **Route handle.** A route asks for the drifting backdrop with `handle: { backdrop: 'drift' }`;
-  `Backdrop` reads it with `useMatches()`.
 - **Errors.** A screen's route module exports `ErrorBoundary = RouteError`, so a loader error
   shows inside the layout, under the top bar: `ErrorState` with Retry (revalidate, which refetches
   the failed query) or Not found for a `404`. Errors above every layout (the session check) reach
@@ -231,9 +229,14 @@ Context or a store.
   toasts.
 - **Where a mutation lives:** in the feature that uses it. `useDeleteCv` and `useRetryCv` live in
   `entities/cv/api`, because both the list and the CV screen use them.
-- **Polling:** `useCvStatusPolling` runs `cvQueries.statuses(ids)` on plain `useQuery` with a 3 s
-  `refetchInterval`, enabled only while some id is in progress. When a CV leaves that group, it
-  invalidates that CV's detail and the list. The full CV is never polled.
+- **Polling:** `useCvStatusPolling(ids)` runs the statuses request on plain `useQuery` with a 3 s
+  `refetchInterval`; the caller passes only the ids in progress (the CV screen its own, the list
+  its rows), and with none it stops. While a CV stays in progress, each answer is patched into its
+  cached detail and list row (status, stage, attempt, queue position), so the panel and the pill
+  move without a refetch. When a CV leaves that group, its detail and the list are invalidated and
+  refetched. The full CV is never polled.
+- **Deleting the CV on screen:** `useDeleteCv({ onDeleted })` calls `onDeleted` (navigate to My
+  CVs) before it drops the CV from the cache, so the screen never refetches a CV that is gone.
 - **Statuses are mapped, never derived.** `statusView.ts` turns the status string into a label, a
   tone and the allowed actions. Nothing infers a status from other fields.
 
@@ -316,7 +319,9 @@ Why it is built this way: [ADR 0003](adr/0003-mock-mode-outside-the-layers.md).
 - **Behaviour.** The handlers act like the API: ownership (`404`), allowed actions per status
   (`409`), version conflict, validation, limits. The store keeps users, the session, CVs and
   questions in browser storage, and the fake worker advances a CV by elapsed time, so a reload
-  loses nothing.
+  loses nothing. The worker has no timers: every handler first moves each CV to where the clock
+  says it is (`runWorker`). A generation takes about 14 s; a keyword in the target role picks
+  the outcome (`fail`, `retry`, `ready`, otherwise questions), and a retried `fail` CV succeeds.
 - **Honesty.** Every mock response goes through the same contract schemas in the API client, so a
   mock that drifts from the contract fails loudly.
 

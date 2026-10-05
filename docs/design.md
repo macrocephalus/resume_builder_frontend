@@ -17,8 +17,11 @@ spec.
   canvas.
   - The shapes are still everywhere except the generation screen, where they drift slowly
     (28 s and 36 s per cycle), only under `motion-safe:`.
-  - The screen asks for the drift through its route `handle` (`{ backdrop: 'drift' }`), read by
-    the backdrop with `useMatches()`. No global state.
+  - The generation panel carries `data-backdrop="drift"`. The backdrop's shapes animate while
+    such an element is on the page (`:root:has([data-backdrop=drift])` in a Tailwind arbitrary
+    variant). CSS only: no route handle, no state, and the drift stops by itself when the panel
+    is replaced by the draft. A route handle could not do this, because the status changes by
+    polling, not by navigation.
   - In the editor, solid panels cover most of the backdrop. That is expected.
 - **Glass:** frosted glass (no refraction) **only on the glass layer**. That is the top bar, the
   tab switcher, the save bar and the auth card.

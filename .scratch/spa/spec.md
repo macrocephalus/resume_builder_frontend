@@ -465,7 +465,7 @@ generation progress, the editor with questions and preview, and PDF download.
   - A solid panel with the status pill and the stage text, "N ahead of you", "Attempt 2 of 3
     failed, retrying…", an indeterminate progress bar and "You can close this page".
   - The panel is `aria-live="polite"`.
-  - The backdrop drifts on this route only.
+  - The backdrop drifts only while the generation panel is on screen.
   - Delete is available.
 - **CV, failed:** the user-facing error text for the error code, with Retry and Delete.
 - **CV, has draft (needs_input, ready):**
@@ -589,8 +589,8 @@ The full reference is `frontend/docs/design.md`; decisions are in ADR 0001 and A
 - **Look:**
   - Light theme only.
   - A backdrop of 3–5 blurred pastel shapes in one fixed CSS layer. It is static everywhere except
-    the generation screen, which asks for the drift through its route handle and only behind
-    `motion-safe`.
+    the generation panel, which carries a `data-backdrop="drift"` marker that the backdrop picks
+    up with CSS `:has()`, and only behind `motion-safe`.
 - **Glass:**
   - Own CSS frosted glass: a `glass` utility and `glass-*` tokens.
   - Used only on the glass layer (top bar, segmented control, save bar, auth card), with at most
