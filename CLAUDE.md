@@ -15,7 +15,7 @@ self-hosted fonts via `@fontsource`. Look, tokens, primitives, layouts and state
 
 - `pnpm dev` — dev server; `/api` is proxied to the backend on `localhost:3000`
 - `pnpm typecheck` — `tsc -b`
-- `pnpm lint` — oxlint
+- `pnpm lint` — oxlint (layer boundaries, `import/no-cycle`, `jsx-a11y`)
 - `pnpm build` — typecheck + production build
 
 Dependencies are installed from the repo root (`pnpm install`): one workspace, one lockfile.
@@ -46,7 +46,9 @@ src/
 
 Imports go only downwards: `app → features → entities → shared`; a feature never imports another
 feature. oxlint enforces it (`no-restricted-imports` per folder, `import/no-cycle`). Import via the
-`@/` alias, not `../../`. Why not FSD: `docs/adr/0002-layers-app-features-entities-shared.md`.
+`@/` alias; relative imports are for `./` siblings only, `../` fails the lint. A new feature folder
+gets its own override in `.oxlintrc.json`; until then it can't import from `@/features` at all.
+Why not FSD: `docs/adr/0002-layers-app-features-entities-shared.md`.
 
 Two different "shared": the **`src/shared` layer** (this app's primitives and client) and the
 **`shared` workspace package** (the contract: Zod schemas, `isInProgress`, `computeMatch`). Always
