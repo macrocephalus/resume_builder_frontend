@@ -2,7 +2,7 @@ import { fileURLToPath } from 'node:url'
 import babel from '@rolldown/plugin-babel'
 import tailwindcss from '@tailwindcss/vite'
 import react, { reactCompilerPreset } from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -13,5 +13,9 @@ export default defineConfig({
   // same origin as in docker (nginx): /api goes to the backend, no CORS
   server: {
     proxy: { '/api': 'http://localhost:3000' },
+  },
+  test: {
+    environment: 'jsdom',
+    setupFiles: './vitest.setup.ts',
   },
 })
