@@ -92,6 +92,17 @@
   --animate-drift-a: drift-a 14s ease-in-out infinite alternate;
   --animate-drift-b: drift-b 18s ease-in-out infinite alternate;
 
+  --animate-indeterminate: indeterminate 1.4s ease-in-out infinite;
+
+  @keyframes indeterminate {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(250%);
+    }
+  }
+
   @keyframes drift-a {
     to {
       transform: translate3d(8%, 6%, 0);
