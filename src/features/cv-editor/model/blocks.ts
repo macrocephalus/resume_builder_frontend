@@ -1,4 +1,4 @@
-import type { ItemSection } from '@cv/shared'
+import type { CvSection, ItemSection } from '@cv/shared'
 import type { DraftFormValues } from '@/features/cv-editor/model/draftForm'
 
 type Item<S extends ItemSection> = DraftFormValues[S][number]
@@ -27,13 +27,25 @@ export type ItemBlockConfig<S extends ItemSection> = {
   empty: () => Item<S>
 }
 
+/** The editor's name of each block (the CV itself uses the headings of its language). */
+export const sectionTitles: Record<CvSection, string> = {
+  contacts: 'Contacts',
+  summary: 'Summary',
+  experience: 'Experience',
+  projects: 'Projects',
+  education: 'Education',
+  certifications: 'Certifications',
+  skills: 'Skills',
+  languages: 'Languages',
+}
+
 const absent = 'An empty block stays out of the CV.'
 const bullets = { label: 'What you did', hint: 'One point per line.', lines: true } as const
 
 /** The labels and fields of each block made of items. */
 export const itemBlocks: { [S in ItemSection]: ItemBlockConfig<S> } = {
   experience: {
-    title: 'Experience',
+    title: sectionTitles.experience,
     itemName: 'Job',
     required: true,
     add: 'Add job',
@@ -47,7 +59,7 @@ export const itemBlocks: { [S in ItemSection]: ItemBlockConfig<S> } = {
     empty: () => ({ itemId: crypto.randomUUID(), title: '', company: '', period: '', bullets: '' }),
   },
   projects: {
-    title: 'Projects',
+    title: sectionTitles.projects,
     itemName: 'Project',
     add: 'Add project',
     none: `No projects yet. ${absent}`,
@@ -60,7 +72,7 @@ export const itemBlocks: { [S in ItemSection]: ItemBlockConfig<S> } = {
     empty: () => ({ itemId: crypto.randomUUID(), name: '', period: '', url: '', bullets: '' }),
   },
   education: {
-    title: 'Education',
+    title: sectionTitles.education,
     itemName: 'Education',
     add: 'Add education',
     none: `No education yet. ${absent}`,
@@ -72,7 +84,7 @@ export const itemBlocks: { [S in ItemSection]: ItemBlockConfig<S> } = {
     empty: () => ({ itemId: crypto.randomUUID(), institution: '', degree: '', period: '' }),
   },
   certifications: {
-    title: 'Certifications',
+    title: sectionTitles.certifications,
     itemName: 'Certificate',
     add: 'Add certificate',
     none: `No certificates yet. ${absent}`,
@@ -84,7 +96,7 @@ export const itemBlocks: { [S in ItemSection]: ItemBlockConfig<S> } = {
     empty: () => ({ itemId: crypto.randomUUID(), name: '', issuer: '', year: '' }),
   },
   languages: {
-    title: 'Languages',
+    title: sectionTitles.languages,
     itemName: 'Language',
     add: 'Add language',
     none: `No languages yet. ${absent}`,

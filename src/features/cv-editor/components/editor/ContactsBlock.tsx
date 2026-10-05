@@ -1,10 +1,11 @@
 import { CV_LIMITS } from '@cv/shared'
+import { sectionTitles } from '@/features/cv-editor/model/blocks'
 import { EditorBlock } from '@/features/cv-editor/components/editor/EditorBlock'
 import { TextField } from '@/features/cv-editor/components/editor/TextField'
 
 export function ContactsBlock() {
   return (
-    <EditorBlock title="Contacts">
+    <EditorBlock title={sectionTitles.contacts}>
       <TextField
         name="contacts.fullName"
         label="Full name"

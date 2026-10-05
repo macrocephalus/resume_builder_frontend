@@ -10,6 +10,7 @@ import { Panel } from '@/shared/ui/Panel'
 import { StatusPill } from '@/entities/cv/components/StatusPill'
 import { DeleteCv } from '@/features/cv-editor/components/DeleteCv'
 import type { DraftFormValues } from '@/features/cv-editor/model/draftForm'
+import { verificationText } from '@/features/cv-editor/model/questions'
 
 type DraftHeaderProps = {
   cv: Cv
@@ -21,7 +22,7 @@ type DraftHeaderProps = {
   onReload: () => void
 }
 
-/** The editable title, the status and target role, the conflict notice and Delete. */
+/** The editable title, the status and target role, the fact-check and conflict notices, Delete. */
 export function DraftHeader({ cv, conflict, reloading, reloadError, onReload }: DraftHeaderProps) {
   const open = cv.questions.filter((question) => question.status === 'open').length
   const { register } = useFormContext<DraftFormValues>()
@@ -39,6 +40,7 @@ export function DraftHeader({ cv, conflict, reloading, reloadError, onReload }: 
         <span>{cv.targetRole}</span>
         {open > 0 ? <span>{open === 1 ? '1 open question' : `${open} open questions`}</span> : null}
       </MetaLine>
+      {cv.verification ? <Notice>{verificationText(cv.verification)}</Notice> : null}
       {conflict ? (
         <Notice
           tone="wait"

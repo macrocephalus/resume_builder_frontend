@@ -1,13 +1,18 @@
-import type { Cv } from '@cv/shared'
+import type { Answer, Cv, PatchCvBody } from '@cv/shared'
 import { useQueryClient } from '@tanstack/react-query'
 import { useState, useTransition } from 'react'
 import { cvQueries } from '@/entities/cv/api/cvQueries'
+import { useAnswerQuestion } from '@/features/cv-editor/api/useAnswerQuestion'
 import { useSaveCv } from '@/features/cv-editor/api/useSaveCv'
+import { useSkipQuestion } from '@/features/cv-editor/api/useSkipQuestion'
 import { DraftEditor } from '@/features/cv-editor/components/editor/DraftEditor'
+import { isQuestionGone, replyErrorText } from '@/features/cv-editor/model/questionErrors'
+import type { AnswerDraft } from '@/features/cv-editor/model/questions'
+import type { ReplyState } from '@/features/cv-editor/model/replies'
 
 /**
- * The CV screen for a CV with a draft. The save lives here, above the form, so "Saved ✓" and a
- * save error outlive the remount that a new version causes.
+ * The CV screen for a CV with a draft. The save, answer and skip live here, above the form, so
+ * "Saved ✓" and their errors outlive the remount that a new version causes.
  */
 export function DraftView({ cv }: { cv: Cv }) {
   const queryClient = useQueryClient()
@@ -17,8 +22,40 @@ export function DraftView({ cv }: { cv: Cv }) {
   // Counts discards, so a discard mounts a fresh form like a new version does.
   const [discards, setDiscards] = useState(0)
 
+  const answer = useAnswerQuestion(cv.id)
+  const skip = useSkipQuestion(cv.id)
+  // What each question card holds; up here, a remount after a save does not lose it.
+  const [drafts, setDrafts] = useState<Record<string, AnswerDraft>>({})
+  const forgetReplies = () => {
+    answer.reset()
+    skip.reset()
+  }
+  const send = (questionId: string, body: Answer | null) => {
+    forgetReplies()
+    if (body) answer.mutate({ questionId, answer: body })
+    else skip.mutate(questionId)
+  }
+  const saveEdits = (body: PatchCvBody) => {
+    forgetReplies()
+    save.mutate(body)
+  }
+  const replyError = answer.error ?? skip.error
+  const replyId = answer.variables?.questionId ?? skip.variables ?? null
+  const replies: ReplyState = {
+    sendingId: answer.isPending || skip.isPending ? replyId : null,
+    failed:
+      replyError && replyId && !isQuestionGone(replyError)
+        ? { questionId: replyId, message: replyErrorText(replyError) }
+        : null,
+    gone: isQuestionGone(replyError),
+    drafts,
+    onDraftChange: (questionId, draft) =>
+      setDrafts((current) => ({ ...current, [questionId]: draft })),
+  }
+
   const discard = () => {
     save.reset()
+    forgetReplies()
     setDiscards((count) => count + 1)
   }
 
@@ -44,10 +81,13 @@ export function DraftView({ cv }: { cv: Cv }) {
         key={`${cv.version}:${discards}`}
         cv={cv}
         save={save}
+        onSave={saveEdits}
         reloading={reloading}
         reloadError={reloadError}
         onReload={reload}
         onDiscard={discard}
+        onSend={send}
+        replies={replies}
       />
     </div>
   )

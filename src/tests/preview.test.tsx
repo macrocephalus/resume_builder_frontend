@@ -5,11 +5,15 @@ import { describe, expect, test } from 'vitest'
 import { seedCv } from '@/mocks/fixtures/cv'
 import { readDb, seedUser } from '@/mocks/store'
 import { renderApp } from '@/tests/renderApp'
+import { wideScreen } from '@/tests/wideScreen'
 
 const signedIn = () => seedUser('ann@example.com', 'correct-horse', { signedIn: true })
 
-/** A ready CV with a small draft: summary, one job and two skills. */
-async function openCv(overrides: Partial<Cv> = {}, path = '') {
+/**
+ * A ready CV with a small draft: summary, one job and two skills. Tests run at phone width, so
+ * the preview shows on its own panel.
+ */
+async function openCv(overrides: Partial<Cv> = {}, path = '?tab=preview') {
   const cv = seedCv(signedIn(), 'ready', { title: 'Olena — Backend', ...overrides })
   renderApp(`/cvs/${cv.id}${path}`)
   await screen.findByLabelText('CV title')
@@ -98,7 +102,7 @@ describe('Block order', () => {
       'experience',
     ])
 
-    renderApp(`/cvs/${cv.id}`)
+    renderApp(`/cvs/${cv.id}?tab=preview`)
     await screen.findByLabelText('CV title')
     expect(sheetHeadings()).toEqual(['Summary', 'Skills', 'Experience'])
     expect(editorBlocks().slice(0, 3)).toEqual(['Summary', 'Skills', 'Experience'])
@@ -122,7 +126,7 @@ describe('Block order', () => {
 
 describe('Panels', () => {
   test('the panel switch is kept in the URL, so a reload opens the same panel', async () => {
-    const { cv, user } = await openCv()
+    const { cv, user } = await openCv({}, '')
     const tabs = screen.getByRole('group', { name: 'Panel' })
 
     expect(within(tabs).getByRole('button', { name: 'Edit' })).toHaveAttribute(
@@ -149,7 +153,7 @@ describe('Panels', () => {
   })
 
   test('switching panels with unsaved edits keeps them and does not ask', async () => {
-    const { user } = await openCv()
+    const { user } = await openCv({}, '')
 
     await user.type(screen.getByLabelText('About you'), ' More.')
     await user.click(screen.getByRole('button', { name: 'Preview' }))
@@ -161,7 +165,7 @@ describe('Panels', () => {
   })
 
   test('a save that fails validation on the Preview panel goes back to the editor', async () => {
-    const { user } = await openCv()
+    const { user } = await openCv({}, '')
 
     await user.click(screen.getByLabelText(/^Full name/))
     await user.paste('x'.repeat(201))
@@ -180,5 +184,15 @@ describe('Panels', () => {
     await openCv({}, '?tab=nonsense')
 
     expect(screen.getByRole('button', { name: 'Edit' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.queryByRole('region', { name: 'Preview' })).toBeNull()
+  })
+
+  test('from 980 px the editor and the preview sit side by side, with no switch', async () => {
+    wideScreen()
+    await openCv({}, '')
+
+    expect(screen.getByRole('region', { name: 'Contacts' })).toBeVisible()
+    expect(preview()).toBeVisible()
+    expect(screen.queryByRole('group', { name: 'Panel' })).toBeNull()
   })
 })

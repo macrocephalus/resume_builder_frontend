@@ -12,6 +12,7 @@ import {
   type CvSummary,
 } from '@cv/shared'
 import { http, HttpResponse } from 'msw'
+import { readyWhenAnswered } from '@/mocks/answers'
 import { buildCv } from '@/mocks/fixtures/cv'
 import { sessionUser, unauthorized } from '@/mocks/handlers/auth'
 import { errorResponse, readJson, validationError } from '@/mocks/respond'
@@ -87,9 +88,7 @@ function skipQuestionsAboutRemovedItems(cv: Cv): void {
       ? { ...question, status: 'skipped' }
       : question,
   )
-  if (cv.status === 'needs_input' && !cv.questions.some((question) => question.status === 'open')) {
-    cv.status = 'ready'
-  }
+  readyWhenAnswered(cv)
 }
 
 export const cvHandlers = [

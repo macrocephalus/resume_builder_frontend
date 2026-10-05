@@ -7,6 +7,7 @@ import { Chip } from '@/shared/ui/Chip'
 import { Field } from '@/shared/ui/Field'
 import { Input } from '@/shared/ui/Input'
 import { MetaLine } from '@/shared/ui/MetaLine'
+import { sectionTitles } from '@/features/cv-editor/model/blocks'
 import { EditorBlock, type BlockMove } from '@/features/cv-editor/components/editor/EditorBlock'
 import type { DraftFormValues } from '@/features/cv-editor/model/draftForm'
 
@@ -40,7 +41,7 @@ export function SkillsBlock({ move }: { move: BlockMove }) {
   }
 
   return (
-    <EditorBlock title="Skills" missing="skills" move={move}>
+    <EditorBlock title={sectionTitles.skills} missing="skills" move={move}>
       {fields.length === 0 ? (
         <MetaLine>No skills yet.</MetaLine>
       ) : (

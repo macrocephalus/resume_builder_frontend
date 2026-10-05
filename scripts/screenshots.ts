@@ -52,6 +52,19 @@ const screens: Screen[] = [
     viewportOnly: true,
   },
   {
+    name: 'cv-questions',
+    path: '/',
+    signedIn: true,
+    act: async (page) => {
+      await page.getByRole('link', { name: 'Open' }).first().click()
+      await page.getByLabel('CV title').waitFor()
+      const questions = page.getByRole('button', { name: /^Questions/ })
+      // From 980 px the questions are already open next to the editor.
+      if (await questions.isVisible()) await questions.click()
+      await page.getByRole('button', { name: 'Kafka' }).click()
+    },
+  },
+  {
     name: 'cv-preview',
     path: '/',
     signedIn: true,

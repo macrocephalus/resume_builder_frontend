@@ -1,14 +1,15 @@
-import type { Cv } from '@cv/shared'
+import type { Answer, Cv, PatchCvBody, Question } from '@cv/shared'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { FormProvider, useForm, useWatch } from 'react-hook-form'
-import { useSearchParams } from 'react-router'
 import { cx } from '@/shared/lib/cx'
 import { SegmentedControl } from '@/shared/ui/SegmentedControl'
 import { ContactsBlock } from '@/features/cv-editor/components/editor/ContactsBlock'
 import { DraftHeader } from '@/features/cv-editor/components/editor/DraftHeader'
 import { MovableBlock } from '@/features/cv-editor/components/editor/MovableBlock'
 import { SaveBar } from '@/features/cv-editor/components/editor/SaveBar'
+import { useCvTab } from '@/features/cv-editor/components/editor/useCvTab'
 import { PreviewPanel } from '@/features/cv-editor/components/preview/PreviewPanel'
+import { QuestionsPanel } from '@/features/cv-editor/components/questions/QuestionsPanel'
 import type { useSaveCv } from '@/features/cv-editor/api/useSaveCv'
 import {
   draftFormSchema,
@@ -16,25 +17,23 @@ import {
   toPatchBody,
   type DraftFormValues,
 } from '@/features/cv-editor/model/draftForm'
+import type { ReplyOutcome, ReplyState } from '@/features/cv-editor/model/replies'
 import { isVersionConflict } from '@/features/cv-editor/model/saveErrors'
-import {
-  CV_TABS,
-  parseTab,
-  SIDE_TABS,
-  sideTabFor,
-  TAB_PARAM,
-  tabLabels,
-  type CvTab,
-} from '@/features/cv-editor/model/tabs'
+import { tabLabel } from '@/features/cv-editor/model/tabs'
 
 type DraftEditorProps = {
   cv: Cv
   save: ReturnType<typeof useSaveCv>
+  /** Saves the form's changes; a reply's notice from before goes. */
+  onSave: (body: PatchCvBody) => void
   reloading: boolean
   reloadError: unknown
   onReload: () => void
   /** Drops the unsaved changes by mounting a fresh form. */
   onDiscard: () => void
+  /** Sends an answer, or a skip with `null`. */
+  onSend: (questionId: string, answer: Answer | null) => void
+  replies: ReplyState
 }
 
 /**
@@ -45,16 +44,20 @@ type DraftEditorProps = {
  * editor. While a save runs the fields are disabled: the answer remounts the form, which would
  * drop what was typed.
  *
- * Below 980 px one panel shows at a time, picked by the `?tab=` param; from 980 px the editor sits
- * on the left and the side panel on the right.
+ * Below 980 px one panel shows at a time, picked by the `?tab=` param; the editor stays mounted
+ * and hidden, so its values stay. From 980 px the editor sits on the left and the side panel on
+ * the right.
  */
 export function DraftEditor({
   cv,
   save,
+  onSave,
   reloading,
   reloadError,
   onReload,
   onDiscard,
+  onSend,
+  replies,
 }: DraftEditorProps) {
   const defaultValues = toDraftForm(cv)
   const form = useForm<DraftFormValues>({
@@ -69,35 +72,58 @@ export function DraftEditor({
     form.setValue('sectionOrder', next, { shouldDirty: true })
   }
 
-  const [searchParams, setSearchParams] = useSearchParams()
-  const tab = parseTab(searchParams.get(TAB_PARAM))
-  const sideTab = sideTabFor(tab)
-  // Written with replace, so Back leaves the CV instead of walking through panels.
-  const chooseTab = (next: CvTab) =>
-    setSearchParams(
-      (params) => {
-        if (next === 'edit') params.delete(TAB_PARAM)
-        else params.set(TAB_PARAM, next)
-        return params
-      },
-      { replace: true },
-    )
+  const { wide, tab, side, switchTabs, switchValue, choose } = useCvTab(cv)
 
   const submit = form.handleSubmit(
     (values) => {
       const body = toPatchBody(values, cv)
       // Only blank items or spaces were added: there is nothing to store.
       if (!body) onDiscard()
-      else save.mutate(body)
+      else onSave(body)
     },
     // On a phone the field with the error may sit in the hidden editor panel.
-    () => chooseTab('edit'),
+    () => choose('edit'),
   )
+
+  // An answer is applied to the saved draft, so unsaved edits are saved first; if that fails, or
+  // the form has errors, the answer is not sent.
+  const reply = async (question: Question, answer: Answer | null): Promise<ReplyOutcome> => {
+    if (!(await form.trigger())) {
+      // On a phone the marked fields sit in the hidden editor panel.
+      choose('edit')
+      return 'invalid'
+    }
+    const body = toPatchBody(form.getValues(), cv)
+    if (body) {
+      try {
+        await save.mutateAsync(body)
+      } catch {
+        return 'not-saved'
+      }
+    }
+    onSend(question.id, answer)
+    return 'sent'
+  }
+
+  // A save or an answer brings a new version, which remounts the form: nothing typed meanwhile
+  // would survive, so the fields wait.
+  const busy = save.isPending || replies.sendingId !== null
+
+  const panelSwitch =
+    switchTabs.length > 0 ? (
+      <SegmentedControl
+        label="Panel"
+        items={switchTabs.map((value) => ({ value, label: tabLabel(value, cv) }))}
+        value={switchValue}
+        onChange={choose}
+        className={cx('justify-self-start', !wide && 'sticky top-16 z-[5]')}
+      />
+    ) : null
 
   return (
     <FormProvider {...form}>
       <form noValidate onSubmit={submit} className="flex flex-col gap-4">
-        <fieldset disabled={save.isPending} className="contents">
+        <fieldset disabled={busy} className="contents">
           <DraftHeader
             cv={cv}
             conflict={isVersionConflict(save.error)}
@@ -107,19 +133,9 @@ export function DraftEditor({
           />
         </fieldset>
         <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)]">
-          <SegmentedControl
-            label="Panel"
-            items={CV_TABS.map((value) => ({ value, label: tabLabels[value] }))}
-            value={tab}
-            onChange={chooseTab}
-            // Next to the editor it switches side panels only, and one needs no switch.
-            className={cx(
-              'sticky top-16 z-[5] justify-self-start',
-              SIDE_TABS.length < 2 && 'lg:hidden',
-            )}
-          />
+          {wide ? null : panelSwitch}
           <fieldset
-            disabled={save.isPending}
+            disabled={busy}
             className={cx('min-w-0 flex-col gap-4 lg:flex', tab === 'edit' ? 'flex' : 'hidden')}
           >
             <ContactsBlock />
@@ -134,14 +150,16 @@ export function DraftEditor({
               />
             ))}
           </fieldset>
-          <div
-            className={cx(
-              'min-w-0 lg:sticky lg:top-18 lg:block lg:max-h-[calc(100dvh-5.5rem)] lg:overflow-y-auto',
-              tab === 'edit' ? 'hidden' : 'block',
-            )}
-          >
-            {sideTab === 'preview' ? <PreviewPanel language={cv.language} /> : null}
-          </div>
+          {wide || tab !== 'edit' ? (
+            <div className="flex min-w-0 flex-col gap-3 lg:sticky lg:top-18 lg:max-h-[calc(100dvh-5.5rem)] lg:overflow-y-auto">
+              {wide ? panelSwitch : null}
+              {side === 'questions' ? (
+                <QuestionsPanel cv={cv} onReply={reply} replies={replies} saving={save.isPending} />
+              ) : (
+                <PreviewPanel language={cv.language} />
+              )}
+            </div>
+          ) : null}
         </div>
         <SaveBar control={form.control} save={save} onCancel={onDiscard} />
       </form>
