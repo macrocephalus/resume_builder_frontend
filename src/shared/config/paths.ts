@@ -46,6 +46,7 @@ export const apiPaths = {
   login: '/api/auth/login',
   logout: '/api/auth/logout',
   me: '/api/auth/me',
+  ingestPdf: '/api/ingest/pdf',
   cvs: '/api/cvs',
   cv: (id: string) => `/api/cvs/${encodeURIComponent(id)}`,
   cvRetry: (id: string) => `/api/cvs/${encodeURIComponent(id)}/retry`,

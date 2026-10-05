@@ -1,4 +1,5 @@
 import {
+  API_LIMITS,
   CV_LANGUAGES,
   createCvBodySchema,
   DEFAULT_CV_LANGUAGE,
@@ -16,6 +17,7 @@ import { Panel } from '@/shared/ui/Panel'
 import { Select } from '@/shared/ui/Select'
 import { Textarea } from '@/shared/ui/Textarea'
 import { useCreateCv } from '@/features/cv-create/api/useCreateCv'
+import { PdfUpload } from '@/features/cv-create/components/PdfUpload'
 import { SourceCounter } from '@/features/cv-create/components/SourceCounter'
 import {
   createFailure,
@@ -30,6 +32,8 @@ export function CvCreateScreen() {
   const {
     register,
     control,
+    getValues,
+    setValue,
     handleSubmit,
     setError,
     formState: { errors },
@@ -40,6 +44,8 @@ export function CvCreateScreen() {
       roleContext: '',
       language: DEFAULT_CV_LANGUAGE,
       sourceText: '',
+      sourceType: 'text',
+      sourceFilename: null,
     },
   })
 
@@ -93,6 +99,15 @@ export function CvCreateScreen() {
             )}
           </Field>
           <div className="flex flex-col gap-1.5">
+            <PdfUpload
+              hasText={() => (getValues('sourceText') ?? '').trim() !== ''}
+              onUse={(pdf) => {
+                setValue('sourceText', pdf.text, { shouldDirty: true, shouldValidate: true })
+                setValue('sourceType', 'pdf')
+                // The name is for display only; the contract keeps it short.
+                setValue('sourceFilename', pdf.filename.slice(0, API_LIMITS.sourceFilename))
+              }}
+            />
             <Field
               label="Your experience"
               hint={`Paste your CV or describe your work in your own words: roles, companies, dates, what you did. ${sourceTextLimits}.`}
