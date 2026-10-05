@@ -8,8 +8,8 @@ Vite + React 19 + TypeScript, React Compiler (Babel preset in `vite.config.ts`),
 React Router (data mode, `createBrowserRouter`), TanStack Query, React Hook Form + Zod, oxlint.
 No UI kit: own primitives in `src/shared/ui` on native elements, `lucide-react` icons,
 self-hosted fonts via `@fontsource`. Look, tokens, primitives, layouts and states:
-`frontend/docs/design.md`; routes and data flow: `docs/architecture.md` §11; API contract:
-`docs/api.md`; statuses: `docs/cv-statuses.md`.
+`frontend/docs/design.md`; structure, routes and data flow: `frontend/docs/architecture.md`; API
+contract: `docs/api.md`; statuses: `docs/cv-statuses.md`.
 
 ## Commands
 
@@ -34,31 +34,44 @@ Dependencies are installed from the repo root (`pnpm install`): one workspace, o
 
 ## Structure
 
+Full reference: `frontend/docs/architecture.md` (the tree, the import table, routes, server
+state, mock mode, tests, and a "where does it go" table). Read it before adding a file. In short:
+
 ```
 src/
-  app/         router, providers (QueryClient), layout (top bar, backdrop)
-    routes/    thin route modules: `lazy`, `loader`, `ErrorBoundary`; the only code that knows URLs
-  features/    one folder per user task: auth, cv-list, cv-create, cv-editor
-               components/, api/ (query options, mutations), model/ (form schemas, maps)
+  app/         router factory, providers (QueryClient), layout, thin route modules in routes/
+  features/    one folder per user task: auth, cv-list, cv-create, cv-editor (the CV screen)
   entities/
-    cv/        what several features need about a CV: `cvQueries`, status → label/tone/actions,
-               status pill, match bar, status polling
-  shared/      api client, UI primitives (`ui/`), utils (`lib/`) — no domain logic
+    cv/        what two or more features need about a CV: queries, shared mutations,
+               status → label/tone/actions, status pill, match bar, status polling
+  shared/      api client, UI primitives (ui/), utils (lib/), paths (config/) — no domain logic
+  mocks/       mock mode (MSW); outside the layers, imports only the contract package
+  tests/       tests that drive the whole app; outside the layers
 ```
 
-Imports go only downwards: `app → features → entities → shared`; a feature never imports another
-feature. oxlint enforces it (`no-restricted-imports` per folder, `import/no-cycle`). Import via the
-`@/` alias; relative imports are for `./` siblings only, `../` fails the lint. A new feature folder
-gets its own override in `.oxlintrc.json`; until then it can't import from `@/features` at all.
-Why not FSD: `docs/adr/0002-layers-app-features-entities-shared.md`.
+- Imports go only downwards: `app → features → entities → shared`; a feature never imports
+  another feature. No layer imports `mocks` or `tests`. oxlint enforces the layers
+  (`no-restricted-imports` per folder, `import/no-cycle`).
+- Import via the `@/` alias; relative imports are for `./` siblings only, `../` fails the lint.
+  No `index.ts` barrels.
+- A new feature folder gets its own override in `.oxlintrc.json`; until then it can't import from
+  `@/features` at all.
+- Every feature and entity uses the same segments: `components/`, `api/` (query options,
+  mutations), `model/` (form schemas, maps, error texts, pure functions). No `hooks/`, `types/`
+  or `utils/` folders.
+- URL strings are written only in `src/shared/config/paths.ts`; links and redirects use its
+  builders.
+- A route module takes from a feature only its `<Name>Screen` component and its `api/`.
+- Why four layers and not FSD: `docs/adr/0002-layers-app-features-entities-shared.md`. Why mocks
+  sit outside them: `docs/adr/0003-mock-mode-outside-the-layers.md`.
 
 Two different "shared": the **`src/shared` layer** (this app's primitives and client) and the
 **`shared` workspace package** (the contract: Zod schemas, `isInProgress`, `computeMatch`). Always
 say which one you mean.
 
 Files: one component per `PascalCase.tsx`, hooks in `useX.ts`, **named exports only** (route
-modules export `Component` / `loader` / `ErrorBoundary` as React Router expects), tests next to
-the file (`X.test.tsx`).
+modules export `Component` / `loader` / `ErrorBoundary` as React Router expects). A unit test sits
+next to its file (`X.test.tsx`); a test of a user flow goes to `src/tests/`.
 
 ## Rules
 
@@ -85,6 +98,7 @@ the file (`X.test.tsx`).
 - **Mobile first.** Style for phone width, add `md:` (760 px) / `lg:` (980 px) on top.
 - Every async view handles loading, error (with retry) and empty states.
 - **Tests:** Vitest + Testing Library against MSW handlers; the same handlers power mock mode.
+  Flow tests render the whole app with `renderApp()` from `src/tests`.
 
 ## Styling
 

@@ -10,6 +10,10 @@ A development run of the SPA in which every `/api` request is answered by in-bro
 of the backend; switched on explicitly, never chosen automatically when the backend is down.
 _Avoid_: fallback mode, offline mode, stub server
 
+**CV screen**:
+What a user sees when they open one CV: generation progress, the failure with its actions, or the draft with its questions, match and preview — chosen by the CV's status.
+_Avoid_: editor (the editor is one part of it), CV page, detail page
+
 **Tone**:
 The visual meaning a state is shown with — neutral, accent, wait, ok or bad; a status maps to a tone, never straight to a color.
 _Avoid_: color, variant, severity
