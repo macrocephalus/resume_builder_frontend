@@ -24,7 +24,8 @@ type SaveBarProps = {
  * with unsaved changes: in the app (a router blocker) and when the tab closes (`beforeunload`).
  */
 export function SaveBar({ control, save, onCancel }: SaveBarProps) {
-  const { isDirty } = useFormState({ control })
+  const { isDirty, errors } = useFormState({ control })
+  const invalid = Object.keys(errors).length > 0
 
   const blocker = useBlocker(
     ({ currentLocation, nextLocation }) =>
@@ -71,6 +72,10 @@ export function SaveBar({ control, save, onCancel }: SaveBarProps) {
         {save.error ? (
           <p role="alert" className="grow">
             {saveErrorText(save.error)}
+          </p>
+        ) : invalid ? (
+          <p role="alert" className="grow">
+            Not saved: fix the marked fields first.
           </p>
         ) : (
           <p className="grow">You have unsaved changes.</p>

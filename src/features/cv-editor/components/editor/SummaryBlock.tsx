@@ -1,9 +1,9 @@
-import { EditorBlock } from '@/features/cv-editor/components/editor/EditorBlock'
+import { EditorBlock, type BlockMove } from '@/features/cv-editor/components/editor/EditorBlock'
 import { TextField } from '@/features/cv-editor/components/editor/TextField'
 
-export function SummaryBlock() {
+export function SummaryBlock({ move }: { move: BlockMove }) {
   return (
-    <EditorBlock title="Summary" missing="summary">
+    <EditorBlock title="Summary" missing="summary" move={move}>
       <TextField
         name="summary"
         label="About you"

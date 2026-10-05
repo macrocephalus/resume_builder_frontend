@@ -4,13 +4,13 @@ import { useFieldArray, useFormContext, type FieldPath } from 'react-hook-form'
 import { Button } from '@/shared/ui/Button'
 import { Fieldset } from '@/shared/ui/Fieldset'
 import { MetaLine } from '@/shared/ui/MetaLine'
-import { EditorBlock } from '@/features/cv-editor/components/editor/EditorBlock'
+import { EditorBlock, type BlockMove } from '@/features/cv-editor/components/editor/EditorBlock'
 import { TextField } from '@/features/cv-editor/components/editor/TextField'
 import { itemBlocks, type ItemBlockConfig } from '@/features/cv-editor/model/blocks'
 import type { DraftFormValues } from '@/features/cv-editor/model/draftForm'
 
 /** A block made of items (jobs, projects…): each can be edited, moved up or down and removed. */
-export function ItemBlock({ section }: { section: ItemSection }) {
+export function ItemBlock({ section, move }: { section: ItemSection; move: BlockMove }) {
   // The configs differ per section; this component only reads what they have in common.
   const config = itemBlocks[section] as ItemBlockConfig<ItemSection>
   const { control } = useFormContext<DraftFormValues>()
@@ -18,7 +18,7 @@ export function ItemBlock({ section }: { section: ItemSection }) {
   const limit = CV_LIMITS[section]
 
   return (
-    <EditorBlock title={config.title} missing={config.required ? section : undefined}>
+    <EditorBlock title={config.title} missing={config.required ? section : undefined} move={move}>
       {fields.length === 0 ? <MetaLine>{config.none}</MetaLine> : null}
       {fields.map((field, index) => (
         <Fieldset key={field.id} legend={`${config.itemName} ${index + 1}`}>

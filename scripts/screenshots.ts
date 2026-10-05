@@ -51,6 +51,15 @@ const screens: Screen[] = [
     },
     viewportOnly: true,
   },
+  {
+    name: 'cv-preview',
+    path: '/',
+    signedIn: true,
+    act: async (page) => {
+      await page.getByRole('link', { name: 'Open' }).first().click()
+      await page.getByRole('button', { name: 'Preview' }).click()
+    },
+  },
 ]
 const widths = [390, 1280]
 const outDir = fileURLToPath(new URL('../.scratch/screens/', import.meta.url))
@@ -101,7 +110,7 @@ try {
       await screen.act?.(page)
       await page.evaluate('document.fonts.ready')
       const file = `${outDir}${screen.name}-${width}.png`
-      await page.screenshot({ path: file, fullPage: !screen.viewportOnly })
+      await page.screenshot({ path: file, fullPage: !screen.viewportOnly, animations: 'disabled' })
       console.log(file)
     }
 

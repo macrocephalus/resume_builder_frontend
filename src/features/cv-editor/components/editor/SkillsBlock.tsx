@@ -7,11 +7,11 @@ import { Chip } from '@/shared/ui/Chip'
 import { Field } from '@/shared/ui/Field'
 import { Input } from '@/shared/ui/Input'
 import { MetaLine } from '@/shared/ui/MetaLine'
-import { EditorBlock } from '@/features/cv-editor/components/editor/EditorBlock'
+import { EditorBlock, type BlockMove } from '@/features/cv-editor/components/editor/EditorBlock'
 import type { DraftFormValues } from '@/features/cv-editor/model/draftForm'
 
 /** Skills as chips: type one and press Enter or Add; remove one with its ✕. */
-export function SkillsBlock() {
+export function SkillsBlock({ move }: { move: BlockMove }) {
   const { control } = useFormContext<DraftFormValues>()
   const { fields, append, remove } = useFieldArray({ control, name: 'skills' })
   const input = useRef<HTMLInputElement>(null)
@@ -40,7 +40,7 @@ export function SkillsBlock() {
   }
 
   return (
-    <EditorBlock title="Skills" missing="skills">
+    <EditorBlock title="Skills" missing="skills" move={move}>
       {fields.length === 0 ? (
         <MetaLine>No skills yet.</MetaLine>
       ) : (
