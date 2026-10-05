@@ -127,12 +127,15 @@ a `Badge` or `Tag` next to `Pill`.
 
 | Primitive | Variants / props | Glass |
 |---|---|---|
-| `Button` | `primary` · `ghost` · `danger`; `size: md · sm`; `block`; pending state | — |
+| `Button` | `primary` · `secondary` · `ghost` · `danger`; `size: md · sm`; `block`; pending state | — |
+| `ButtonLink` | a router `Link` with the `Button` look (same variants, from `buttonClasses.ts`) | — |
 | `Field` | label + hint + error around one control; wires `id` / `aria-describedby` / `aria-invalid` | — |
 | `Input`, `Textarea`, `Select` | `Select` is native `<select>` | — |
 | `Pill` | `tone` | — |
 | `Chip` | removable (skills) | — |
 | `Panel` | solid content card | — |
+| `ListPanel` | solid panel of rows: a `ul` with a thin line between items | — |
+| `MetaLine` | a wrapping line of small `muted` facts under a title (status, counts, date) | — |
 | `Notice` | `tone`; optional action | — |
 | `ProgressBar` | indeterminate or `value`; `tone` | — |
 | `EmptyState`, `ErrorState` | `ErrorState` has Retry | — |
@@ -169,8 +172,9 @@ our own; sizes 16 / 20; decorative icons get `aria-hidden`.
 
 - **Navigating:** route loaders keep the old screen until data is ready, and a thin progress line
   runs in the top bar (`navigation.state === 'loading'`).
-- **Cold start:** a skeleton is the Suspense fallback on the first open of a screen. No
-  full-screen spinners.
+- **Cold start:** on the first load of the app the router shows `PageSkeleton` (grey bars where
+  the top bar and content will be) until the first screen's loaders finish. No full-screen
+  spinners.
 - **Errors:** the route's `ErrorBoundary` shows `ErrorState` with Retry. A failed mutation shows
   its error next to the control that triggered it.
 - **Empty:** `EmptyState` says what to do next.

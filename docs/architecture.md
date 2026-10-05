@@ -39,7 +39,9 @@ src/
       ProtectedLayout.tsx      TopBar + outlet, for signed-in routes
       TopBar.tsx               glass bar: product name, email, Log out, navigation progress line
       Backdrop.tsx             pastel shapes; drifts when a route handle asks for it
-      RouteError.tsx           the ErrorBoundary element: ErrorState with Retry, or Not found
+      RouteError.tsx           a route's ErrorBoundary: ErrorState with Retry, or Not found
+      PageError.tsx            RouteError framed as a page, for errors above every layout
+      PageSkeleton.tsx         the router's HydrateFallback: the cold-open skeleton
       NotFound.tsx             the Not found view, for the * route and for a 404
     routes/                    one thin module per route: loader, Component, ErrorBoundary
       login.tsx
@@ -197,11 +199,16 @@ Every feature and every entity uses the same three segments, created when first 
   same-origin relative path.
 - **Route handle.** A route asks for the drifting backdrop with `handle: { backdrop: 'drift' }`;
   `Backdrop` reads it with `useMatches()`.
-- **Errors.** A loader error reaches `RouteError`, which shows `ErrorState` with Retry (reset the
-  query, revalidate) or Not found for a `404`.
+- **Errors.** A screen's route module exports `ErrorBoundary = RouteError`, so a loader error
+  shows inside the layout, under the top bar: `ErrorState` with Retry (revalidate, which refetches
+  the failed query) or Not found for a `404`. Errors above every layout (the session check) reach
+  `PageError`.
+- **A protected screen's loader waits for the session.** It awaits `authQueries.me()` (the same
+  request as the protected loader's) and loads nothing for an anonymous visitor, so a deep link
+  does not fire a `401` before the redirect to login.
 - **Navigation feedback.** The old screen stays until the loader resolves; the top bar shows a
-  progress line while `navigation.state === 'loading'`. A skeleton appears only as the Suspense
-  fallback on a cold open.
+  progress line while `navigation.state === 'loading'`. On the first load of the app the router
+  shows `PageSkeleton` (its `HydrateFallback`).
 
 ## 5. Server state
 
