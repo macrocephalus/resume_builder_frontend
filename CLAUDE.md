@@ -16,6 +16,8 @@ self-hosted fonts via `@fontsource`. Look, tokens, primitives, layouts and state
 - `pnpm dev` — dev server; `/api` is proxied to the backend on `localhost:3000`
 - `pnpm typecheck` — `tsc -b`
 - `pnpm lint` — oxlint (layer boundaries, `import/no-cycle`, `jsx-a11y`)
+- `pnpm format` / `pnpm format:check` — Prettier with `prettier-plugin-tailwindcss` (write / check)
+- `pnpm test` / `pnpm test:watch` — Vitest + Testing Library in jsdom (once / watch)
 - `pnpm build` — typecheck + production build
 
 Dependencies are installed from the repo root (`pnpm install`): one workspace, one lockfile.
@@ -147,7 +149,8 @@ Rendering & bundle:
 Follow the commit rules in the root `CLAUDE.md`. For frontend changes:
 
 - scope is `frontend`: `feat(frontend): add cv editor form`
-- before committing run `pnpm typecheck && pnpm lint && pnpm build` — all must pass
+- before committing run
+  `pnpm typecheck && pnpm lint && pnpm format:check && pnpm test && pnpm build` — all must pass
 
 ## Agent skills
 
