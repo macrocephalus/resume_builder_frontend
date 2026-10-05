@@ -6,6 +6,7 @@ type Method = 'GET' | 'POST' | 'PATCH' | 'DELETE'
 
 type RequestOptions = {
   method?: Method
+  /** JSON-encoded, except a `FormData`, which is sent as multipart. */
   body?: unknown
 }
 
@@ -17,8 +18,11 @@ async function send(path: string, { method = 'GET', body }: RequestOptions): Pro
     response = await fetch(new URL(path, window.location.origin), {
       method,
       credentials: 'same-origin',
-      headers: body === undefined ? undefined : { 'Content-Type': 'application/json' },
-      body: body === undefined ? undefined : JSON.stringify(body),
+      headers:
+        body === undefined || body instanceof FormData
+          ? undefined
+          : { 'Content-Type': 'application/json' },
+      body: body === undefined || body instanceof FormData ? body : JSON.stringify(body),
     })
   } catch {
     throw new ApiError(0, 'NETWORK_ERROR', 'Cannot reach the server.')
