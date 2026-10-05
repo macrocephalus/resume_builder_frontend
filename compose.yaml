@@ -1,0 +1,19 @@
+# Frontend on its own: the SPA in nginx on http://localhost:8080.
+# /api goes to a backend on the host port 3000 (`pnpm dev` in backend/ or `pnpm stack:backend`).
+#   from the repo root: pnpm stack:frontend
+#   here:               docker compose up --build
+# Included by the root compose.yaml, which points API_UPSTREAM at the api service.
+
+services:
+  web:
+    build:
+      context: ..
+      dockerfile: frontend/Dockerfile
+    image: resume-builder-frontend
+    environment:
+      # Docker Desktop resolves host.docker.internal; on plain Linux Docker pass the host IP,
+      # e.g. API_UPSTREAM=172.17.0.1:3000
+      API_UPSTREAM: ${API_UPSTREAM:-host.docker.internal:3000}
+    ports:
+      - 127.0.0.1:${WEB_PORT:-8080}:80
+    restart: unless-stopped
