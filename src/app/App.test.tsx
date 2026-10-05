@@ -1,9 +1,12 @@
 import { render, screen } from '@testing-library/react'
 import { expect, test } from 'vitest'
 import { App } from '@/app/App'
+import { createAppRouter } from '@/app/router'
 
-test('renders the app', () => {
-  render(<App />)
+test('shows the product name in the top bar', async () => {
+  render(<App router={createAppRouter()} />)
 
-  expect(screen.getByRole('heading', { level: 1, name: 'AI CV Builder' })).toBeVisible()
+  const topBar = await screen.findByRole('banner')
+
+  expect(topBar).toHaveTextContent('AI CV Builder')
 })

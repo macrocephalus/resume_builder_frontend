@@ -1,7 +1,5 @@
-export function App() {
-  return (
-    <main className="mx-auto max-w-2xl p-4">
-      <h1 className="text-2xl font-semibold">AI CV Builder</h1>
-    </main>
-  )
+import { RouterProvider, type RouterProviderProps } from 'react-router'
+
+export function App({ router }: { router: RouterProviderProps['router'] }) {
+  return <RouterProvider router={router} />
 }
