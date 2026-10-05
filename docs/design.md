@@ -131,6 +131,7 @@ a `Badge` or `Tag` next to `Pill`.
 | Primitive | Variants / props | Glass |
 |---|---|---|
 | `Button` | `primary` · `secondary` · `ghost` · `danger`; `size: md · sm`; `block`; pending state | — |
+| `FileButton` | a native file input inside a label with the `Button` look (`secondary`); `accept`, `onFile`, pending | — |
 | `ButtonLink` | a router `Link` with the `Button` look (same variants, from `buttonClasses.ts`) | — |
 | `Field` | label + hint + error around one control; wires `id` / `aria-describedby` / `aria-invalid` | — |
 | `Input`, `Textarea`, `Select` | `Select` is native `<select>` | — |

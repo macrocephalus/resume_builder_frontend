@@ -340,7 +340,8 @@ Why it is built this way: [ADR 0003](adr/0003-mock-mode-outside-the-layers.md).
 - **Unit tests** are for pure functions with real logic and sit next to the file. The mock
   handlers are not tested on their own; the flow tests exercise them.
 - `vitest.setup.ts` at the package root registers the DOM matchers, cleans up after each test and
-  starts the mock server.
+  starts the mock server. It also puts Node's own `FormData` and `File` back over jsdom's: Node's
+  `fetch` cannot send jsdom's, so an upload would arrive empty.
 
 ## 10. Where does it go
 
