@@ -29,7 +29,7 @@ src/
   index.css                    Tailwind import, @theme tokens, the glass utility
 
   app/                         LAYER 1: wiring; knows every layer below
-    App.tsx                    QueryClientProvider + RouterProvider
+    App.tsx                    QueryClientProvider + RouterProvider; takes the router as a prop
     router.tsx                 createAppRouter(queryClient): the route table
     providers/
       queryClient.ts           createQueryClient({ onUnauthorized }): defaults, 401 handling

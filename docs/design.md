@@ -16,7 +16,7 @@ spec.
   layer under the whole app. Plain CSS (`radial-gradient` / round blurred divs), no images or
   canvas.
   - The shapes are still everywhere except the generation screen, where they drift slowly
-    (20–40 s per cycle), only under `motion-safe:`.
+    (28 s and 36 s per cycle), only under `motion-safe:`.
   - The screen asks for the drift through its route `handle` (`{ backdrop: 'drift' }`), read by
     the backdrop with `useMatches()`. No global state.
   - In the editor, solid panels cover most of the backdrop. That is expected.
@@ -44,17 +44,30 @@ Defined once in `src/index.css` with Tailwind v4 `@theme`.
 | Lines | `line` #D6DCE8 · `line-strong` #AEB8CB |
 | Tones | `accent` #1F4FD1 / `accent-soft` #E6ECFB · `wait` #955800 / `wait-soft` #FBF0DC · `ok` #1B7A4B / `ok-soft` #E2F3EA · `bad` #B4372B / `bad-soft` #FBE7E4 |
 | Paper (preview sheet) | `paper` #FFFFFF · `paper-ink` #16181D · `paper-muted` #5A6070 · `paper-line` #D5D8DF |
-| Backdrop | `blob-1…5`: pastel lavender, mint, peach, sky, pink. Tune with screenshots; `accent` must stay readable over each |
-| Glass | `glass-tint` (white, ~72–80 % opaque, so text passes AA even without blur) · `glass-border` (light 1 px highlight) · `glass-shadow` · `glass-blur` (12–16 px) |
+| Backdrop | `blob-1` #DCD6FF (lavender) · `blob-2` #C9F2DE (mint) · `blob-3` #FFD9C2 (peach) · `blob-4` #C4E2FF (sky) · `blob-5` #FFD3E6 (pink); drawn at 70 % opacity under a 64 px blur |
+| Glass | `glass-tint` (white, 76 % opaque, so text passes AA even without blur) · `glass-border` (white, 70 %, a light 1 px highlight) · `--glass-shadow` · `--glass-blur` (14 px) |
+
+- Colours are `--color-<token>` variables, so every token is a utility (`bg-surface`, `text-ink`,
+  `border-line`, `bg-blob-1`). `--glass-blur` and `--glass-shadow` are plain variables read by the
+  `glass` utility.
+- The backdrop values were picked with `pnpm screenshots`. `src/index.test.ts` reads the tokens
+  from `src/index.css` and fails when `ink` or `accent` on glass drops below AA over the
+  background or any shape, with and without the blur filter, or when `accent` drops below AA
+  straight over a shape. Change a backdrop or glass value and that test tells whether it holds.
 
 - **Fonts:**
   - Unbounded 500/600 for headings, Golos Text 400/500/600 for body, JetBrains Mono 400/500
     for pills and counters.
-  - All via `@fontsource`, latin + cyrillic subsets only.
+  - All via `@fontsource`, imported per weight. Each face has a `unicode-range`, so the browser
+    fetches only the subsets a page uses (latin and cyrillic for our texts).
   - The preview sheet uses **Liberation Sans** (woff2 in `public/fonts`), the PDF's font, so
     line breaks match the download.
-- **Radii:** 6 / 8 / 999 px. **Borders:** flat 1 px. **Focus:** 2 px `accent` ring via
-  `focus-visible`.
+  - Utilities: `font-display`, `font-sans` (the default), `font-mono`, `font-paper`. `h1` and
+    `h2` get the display font and their sizes from the base layer, so a screen writes a plain
+    heading.
+- **Radii:** 6 / 8 / 999 px (`rounded-sm` / `rounded-md` / `rounded-full`). **Borders:** flat
+  1 px. **Focus:** 2 px `accent` outline on `:focus-visible`, set once in the base layer.
+- **Page width:** `max-w-page` (1120 px).
 - **Breakpoints:** `md` = 760 px (list rows stop stacking), `lg` = 980 px (editor splits into
   two columns). These replace the Tailwind defaults.
 
@@ -63,7 +76,8 @@ Defined once in `src/index.css` with Tailwind v4 `@theme`.
 `@utility glass` in `src/index.css`:
 
 - `glass-tint` background, `backdrop-filter: blur(var(--glass-blur)) saturate(1.5)` (with the
-  `-webkit-` prefix), `glass-border` and `glass-shadow`.
+  `-webkit-` prefix), the `glass-border` colour and `--glass-shadow`.
+- It sets the border colour, not the sides: the element adds `border` or `border-b`.
 - Fallback to a solid `surface` background under
   `@supports not (backdrop-filter: blur(1px))` and under
   `@media (prefers-reduced-transparency: reduce)`. The media query only works in Chromium;
@@ -164,7 +178,11 @@ our own; sizes 16 / 20; decorative icons get `aria-hidden`.
 
 ## Checking the look
 
-Tests don't tell whether a screen looks right. `pnpm screenshots` (Playwright, to be set up)
-starts the app in mock mode and captures every screen at **390 px and 1280 px** into
-`.scratch/screens/` (gitignored). At the end of each UI ticket, look at both widths, compare with
+Tests don't tell whether a screen looks right. `pnpm screenshots` (`scripts/screenshots.ts`,
+Playwright with Chromium) starts the dev server and captures every screen listed in the script at
+**390 px and 1280 px** into `.scratch/screens/` (gitignored). It fails when the page requests
+anything from another origin. From ticket 03 it runs in mock mode. Chromium is downloaded once
+with `pnpm exec playwright install chromium`.
+
+At the end of each UI ticket, add the new screens to the list, look at both widths, compare with
 the prototype, and mention the result in the report.
