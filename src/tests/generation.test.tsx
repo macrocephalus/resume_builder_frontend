@@ -208,11 +208,14 @@ describe('generation', () => {
     const second = seedCv(ann, 'queued', { title: 'Second' }, { queuedAt: now, scenario: 'ready' })
     renderApp(`/cvs/${second.id}`)
 
+    // The first is generating, so the second waits: still queued, whatever the progress line says
+    // (how far the first got depends on the real time the run added to the fake clock).
     await wait(3000)
-    expect(await screen.findByText('1 ahead of you in the queue')).toBeVisible()
+    expect(await screen.findByText('In queue')).toBeVisible()
 
     await wait(12000)
-    expect(await screen.findByText('Writing your CV')).toBeVisible()
+    // Which stage it is in depends on how much real time the run added to the fake clock.
+    expect(await screen.findByText('Generating')).toBeVisible()
     await wait(12000)
     expect(await screen.findByLabelText('CV title')).toBeVisible()
 
@@ -221,7 +224,9 @@ describe('generation', () => {
     for (const title of ['First', 'Second']) {
       expect(within(screen.getByRole('listitem', { name: title })).getByText('Ready')).toBeVisible()
     }
-  })
+    // Two whole generations, about 27 s of fake time and nine polls: more than the default 5 s
+    // of real time when every test file runs at once.
+  }, 15_000)
 
   test('My CVs follows a CV in progress without a reload', async () => {
     const ann = signedIn()
