@@ -290,7 +290,11 @@ Context or a store.
   conflict notice with "Reload latest"; the save bar then offers no Save, which could only
   conflict again.
 - **Save before action.** Answer, skip and download save a dirty form first; a failed save stops
-  the action.
+  the action. Answer and skip mutations live in `DraftView`, above the form's key, like the save:
+  their answer brings a new version that remounts the form, and their pending state, their errors
+  and what each question card holds must outlive it. While any of them or a save runs, the
+  editor's fields and every card wait, since the remount would drop what was typed meanwhile and
+  a second reply would race the first.
 - **Leaving with unsaved changes:** a `beforeunload` prompt and a router blocker, both in the save
   bar. The blocker lets through a change of search params only (`?tab=`), the way to login (the
   session ended) and a navigation with the `discardEdits` state (the CV was deleted).
@@ -310,10 +314,18 @@ There is no global store. Context is not used for app state; the current user is
 `['me']` query.
 
 The tab of the CV screen is in the URL, so a reload and a shared link open the same panel. It is
-written with `replace`, so Back leaves the CV screen instead of walking through tabs. Both columns
-are always rendered and CSS hides one below 980 px, so switching keeps the form's unsaved values;
-from 980 px the editor is always shown and the side panel shows the chosen side tab, or Preview
-when the tab is Edit (`model/tabs.ts`).
+written with `replace`, so Back leaves the CV screen instead of walking through tabs.
+
+- Questions is a tab while the CV has any question, open or closed, so after the last answer the
+  panel still says "no open questions" and lists the answers. The spec's "only for
+  `needs_input`" would make the panel vanish with the answer that closes it.
+- Below 980 px the editor stays mounted and CSS hides it on another tab, so its unsaved values
+  stay; the side panel is rendered only while its tab is chosen. From 980 px the editor is always
+  shown and the side panel shows the chosen side tab, or the first one when the tab is Edit.
+- Which layout applies is read in JS (`useMediaQuery` in `src/shared/lib`): the switch offers
+  different tabs and a different pressed one on each side of 980 px, which CSS alone cannot
+  say to a screen reader. jsdom has no `matchMedia`, so tests run the phone layout;
+  `wideScreen()` in `src/tests` switches a test to the wide one.
 
 ## 8. Mock mode
 

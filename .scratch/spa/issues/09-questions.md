@@ -6,23 +6,23 @@ closing the last question makes the CV ready.
 
 **Blocked by:** 07, 08 (the tabs and `?tab=` come with 08)
 
-**Status:** ready-for-agent
+**Status:** done
 
 **Implements:** `.scratch/frontend-first/issues/09-questions.md`
 
 **Spec:** [../spec.md](../spec.md)
 
-- [ ] Questions panel with the open count in its tab (only while the CV needs input); each card says which part of the CV it is about
-- [ ] Cards by kind: `text` input; `choice` options plus "Other" with an input; `multi` toggles plus "Other, comma-separated"; `confirm` shows the quoted claim with "Yes, add it" / "No"
-- [ ] Submit is disabled until the answer is valid for its kind (not empty, ≤ 1 000 chars, `multi` needs a value or Other); Skip is offered for all kinds except `confirm`
-- [ ] Unsaved edits are saved before an answer or skip is sent; if that save fails the answer is not sent and the error is shown
-- [ ] After an answer the field is updated in the editor, the question moves to the collapsed "Answered (N)" list with its answer; closed questions cannot be re-answered
-- [ ] When the last open question is closed the CV becomes `ready` and the panel says there are no open questions
-- [ ] Editing a field by hand does not close its question; deleting an item and saving removes the questions about it (mock mode marks them `skipped`, and the CV may become `ready`)
-- [ ] Mock mode applies answers by a simple rule (scalar target → write the value; skills → append; `confirm` yes → append the claim), enforces question status and kind (`409 INVALID_STATE`), and rejects an answer whose target no longer exists; the UI then refreshes the CV and explains
-- [ ] The verification notice (confirmed / sent to confirm / skills moved) is shown above the questions
-- [ ] Tests: validation per kind, answer updates the field, skip, `confirm` has no Skip, last question → ready, save-before-answer, deleted item removes its question
-- [ ] The look follows `frontend/docs/design.md`; screenshots at 390 px and 1280 px in mock mode are checked against the prototype and mentioned in the report
-- [ ] `pnpm typecheck && pnpm lint && pnpm build`, the format check and the tests pass
+- [x] Questions panel with the open count in its tab (only while the CV needs input); each card says which part of the CV it is about
+- [x] Cards by kind: `text` input; `choice` options plus "Other" with an input; `multi` toggles plus "Other, comma-separated"; `confirm` shows the quoted claim with "Yes, add it" / "No"
+- [x] Submit is disabled until the answer is valid for its kind (not empty, ≤ 1 000 chars, `multi` needs a value or Other); Skip is offered for all kinds except `confirm`
+- [x] Unsaved edits are saved before an answer or skip is sent; if that save fails the answer is not sent and the error is shown
+- [x] After an answer the field is updated in the editor, the question moves to the collapsed "Answered (N)" list with its answer; closed questions cannot be re-answered
+- [x] When the last open question is closed the CV becomes `ready` and the panel says there are no open questions
+- [x] Editing a field by hand does not close its question; deleting an item and saving removes the questions about it (mock mode marks them `skipped`, and the CV may become `ready`)
+- [x] Mock mode applies answers by a simple rule (scalar target → write the value; skills → append; `confirm` yes → append the claim), enforces question status and kind (`409 INVALID_STATE`), and rejects an answer whose target no longer exists; the UI then refreshes the CV and explains
+- [x] The verification notice (confirmed / sent to confirm / skills moved) is shown above the questions
+- [x] Tests: validation per kind, answer updates the field, skip, `confirm` has no Skip, last question → ready, save-before-answer, deleted item removes its question
+- [x] The look follows `frontend/docs/design.md`; screenshots at 390 px and 1280 px in mock mode are checked against the prototype and mentioned in the report
+- [x] `pnpm typecheck && pnpm lint && pnpm build`, the format check and the tests pass
 
 **Architecture:** Structure follows `frontend/docs/architecture.md`: the panel and cards live in `cv-editor/components/questions/`, the mutations in `cv-editor/api/`; the Questions panel is a value of the `?tab=` search param.

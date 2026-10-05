@@ -68,8 +68,8 @@ Defined once in `src/index.css` with Tailwind v4 `@theme`.
   - The preview sheet uses **Liberation Sans** (woff2 in `public/fonts`), the PDF's font, so
     line breaks match the download.
   - Utilities: `font-display`, `font-sans` (the default), `font-mono`, `font-paper`. `h1` and
-    `h2` get the display font and their sizes from the base layer, so a screen writes a plain
-    heading.
+    `h2` get the display font and their sizes from the base layer, and `h3` (a card title, like a
+    question) a 16 px semibold body font, so a screen writes a plain heading.
 - **Links:** a plain `<a>` / `<Link>` is `accent` and underlined on hover, set in the base layer,
   so feature code writes links without colour classes.
 - **Radii:** 6 / 8 / 999 px (`rounded-sm` / `rounded-md` / `rounded-full`). **Borders:** flat
@@ -136,7 +136,8 @@ a `Badge` or `Tag` next to `Pill`.
 | `Field` | label + hint + error around one control; wires `id` / `aria-describedby` / `aria-invalid` | — |
 | `Input`, `Textarea`, `Select` | `Select` is native `<select>`; `Input` `look`: `field` · `title` (an editable heading, framed on hover and focus) | — |
 | `Pill` | `tone` | — |
-| `Chip` | removable (skills) | — |
+| `Chip` | removable (skills) or a toggle with `pressed` (answer options) | — |
+| `Disclosure` | a solid panel that opens on a click, a native `<details>` ("Answered (N)") | — |
 | `Fieldset` | a group of fields with a small legend and a line above every group but the first (one item of a list) | — |
 | `Panel` | solid content card | — |
 | `ListPanel` | solid panel of rows: a `ul` with a thin line between items | — |
@@ -168,7 +169,7 @@ our own; sizes 16 / 20; decorative icons get `aria-hidden`.
 - **≥ 980 px:** two columns. Editor on the left (`1.08fr`); side panel on the right (`.92fr`)
   with the Questions / Match / Preview tabs. The side panel sticks under the top bar and scrolls
   on its own. The tabs show here only when there is more than one side panel (Preview alone
-  needs no switch).
+  needs no switch), and offer the side panels only: the editor is always there.
 - **< 980 px:** one column.
   - The `SegmentedControl` (Edit · Questions N · Match · Preview) sticks to the top under the top
     bar, and one panel shows at a time.
