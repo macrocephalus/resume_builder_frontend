@@ -5,13 +5,32 @@ import { fileURLToPath } from 'node:url'
 import { chromium, type Page } from 'playwright'
 import { createServer } from 'vite'
 
-type Screen = { name: string; path: string; signedIn?: boolean }
+type Screen = {
+  name: string
+  path: string
+  signedIn?: boolean
+  /** Create a CV for this role through the form first, and wait for this text on its page. */
+  create?: { role: string; waitFor: string }
+}
 
 const screens: Screen[] = [
   { name: 'login', path: '/login' },
   { name: 'signup', path: '/signup' },
   { name: 'my-cvs', path: '/', signedIn: true },
   { name: 'not-found', path: '/no-such-page', signedIn: true },
+  { name: 'new-cv', path: '/cvs/new', signedIn: true },
+  {
+    name: 'cv-generating',
+    path: '/cvs/new',
+    signedIn: true,
+    create: { role: 'Senior Backend Engineer', waitFor: 'Writing your CV' },
+  },
+  {
+    name: 'cv-failed',
+    path: '/cvs/new',
+    signedIn: true,
+    create: { role: 'Fail Engineer', waitFor: 'The AI service is unavailable' },
+  },
 ]
 const widths = [390, 1280]
 const outDir = fileURLToPath(new URL('../.scratch/screens/', import.meta.url))
@@ -24,6 +43,9 @@ const origin = new URL(baseUrl).origin
 
 const browser = await chromium.launch()
 const offOrigin = new Set<string>()
+
+const sampleExperience =
+  'Backend engineer with six years of Node.js and PostgreSQL at Fintory; built the payments API. '
 
 /** Signs up a fresh user through the UI; the mock keeps the session in this page's storage. */
 async function signUp(page: Page) {
@@ -49,6 +71,12 @@ try {
         await signUp(page)
       }
       await page.goto(new URL(screen.path, baseUrl).href, { waitUntil: 'networkidle' })
+      if (screen.create) {
+        await page.getByLabel('Target role').fill(screen.create.role)
+        await page.getByLabel('Your experience').fill(sampleExperience)
+        await page.getByRole('button', { name: 'Create CV' }).click()
+        await page.getByText(screen.create.waitFor).waitFor({ timeout: 20_000 })
+      }
       await page.evaluate('document.fonts.ready')
       const file = `${outDir}${screen.name}-${width}.png`
       await page.screenshot({ path: file, fullPage: true })

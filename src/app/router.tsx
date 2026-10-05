@@ -35,6 +35,8 @@ export function createAppRouter(queryClient: QueryClient) {
               lazy: lazy(() => import('@/app/routes/protected')),
               children: [
                 { index: true, lazy: lazy(() => import('@/app/routes/cv-list')) },
+                { path: routes.newCv, lazy: lazy(() => import('@/app/routes/cv-new')) },
+                { path: routes.cv, lazy: lazy(() => import('@/app/routes/cv')) },
                 // Unknown paths sit behind login, so a deep link survives the login redirect.
                 { path: '*', lazy: lazy(() => import('@/app/routes/not-found')) },
               ],

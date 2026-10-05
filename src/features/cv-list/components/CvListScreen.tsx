@@ -1,13 +1,16 @@
+import { isInProgress } from '@cv/shared'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { paths } from '@/shared/config/paths'
 import { ButtonLink } from '@/shared/ui/ButtonLink'
 import { EmptyState } from '@/shared/ui/EmptyState'
 import { ListPanel } from '@/shared/ui/ListPanel'
 import { cvQueries } from '@/entities/cv/api/cvQueries'
+import { useCvStatusPolling } from '@/entities/cv/api/useCvStatusPolling'
 import { CvRow } from '@/features/cv-list/components/CvRow'
 
 export function CvListScreen() {
   const { data: cvs } = useSuspenseQuery(cvQueries.list())
+  useCvStatusPolling(cvs.filter((cv) => isInProgress(cv.status)).map((cv) => cv.id))
 
   return (
     <div className="flex flex-col gap-4">

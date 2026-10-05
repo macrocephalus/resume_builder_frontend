@@ -1,28 +1,16 @@
-import { useMatches } from 'react-router'
 import { cx } from '@/shared/lib/cx'
 
-function asksForDrift(handle: unknown): boolean {
-  return (
-    typeof handle === 'object' &&
-    handle !== null &&
-    'backdrop' in handle &&
-    handle.backdrop === 'drift'
-  )
-}
-
 const shape = 'absolute rounded-full opacity-70 blur-3xl'
-const driftA = 'motion-safe:group-data-[motion=drift]:animate-drift-a'
-const driftB = 'motion-safe:group-data-[motion=drift]:animate-drift-b'
+// The shapes drift while an element with `data-backdrop="drift"` is on the page (the generation
+// panel). CSS only, so no state connects that panel and this layer.
+const driftA = 'motion-safe:[:root:has([data-backdrop=drift])_&]:animate-drift-a'
+const driftB = 'motion-safe:[:root:has([data-backdrop=drift])_&]:animate-drift-b'
 
 export function Backdrop() {
-  const drifts = useMatches().some((match) => asksForDrift(match.handle))
-
   return (
     <div
       aria-hidden="true"
-      data-testid="backdrop"
-      data-motion={drifts ? 'drift' : 'still'}
-      className="group pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-bg"
+      className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-bg"
     >
       <div className={cx(shape, driftA, '-top-32 -left-32 size-96 bg-blob-1 lg:size-160')} />
       <div className={cx(shape, driftB, 'top-1/4 -right-40 size-88 bg-blob-2 lg:size-144')} />

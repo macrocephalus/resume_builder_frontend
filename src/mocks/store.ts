@@ -9,7 +9,7 @@ export type MockUser = {
   password: string
 }
 
-type MockDb = {
+export type MockDb = {
   users: MockUser[]
   /** The user the session cookie belongs to. */
   sessionUserId: string | null
@@ -17,16 +17,37 @@ type MockDb = {
   failedLogins: Record<string, number[]>
   /** Every user's CVs; a handler only ever shows the session user's own. */
   cvs: MockCv[]
+  /** Times generations started in, by user id; the hourly limit counts them. */
+  generations: Record<string, number[]>
+}
+
+/** How a fake generation ends (`mocks/worker.ts`). */
+export type Scenario = 'questions' | 'ready' | 'retry' | 'fail'
+
+/** A generation the fake worker is running. */
+export type MockJob = {
+  queuedAt: number
+  scenario: Scenario
+  /** When the worker took the job; unset while it waits in the queue. */
+  startedAt?: number
 }
 
 export type MockCv = {
   ownerId: string
   cv: Cv
+  /** Present while the CV is in progress. */
+  job?: MockJob
 }
 
 const KEY = 'ai-cv-builder:mock-db'
 
-const emptyDb = (): MockDb => ({ users: [], sessionUserId: null, failedLogins: {}, cvs: [] })
+const emptyDb = (): MockDb => ({
+  users: [],
+  sessionUserId: null,
+  failedLogins: {},
+  cvs: [],
+  generations: {},
+})
 
 export function readDb(): MockDb {
   try {

@@ -1,6 +1,6 @@
 import type { CvData, CvStatus, Question, Requirement } from '@cv/shared'
 import { DEFAULT_SECTION_ORDER, hasDraft, type Cv } from '@cv/shared'
-import { updateDb, type MockUser } from '@/mocks/store'
+import { updateDb, type MockJob, type MockUser } from '@/mocks/store'
 
 /** A small draft; the full eight-block fixture arrives with generation. */
 export const sampleDraft = (): CvData => ({
@@ -84,9 +84,14 @@ export function buildCv(status: CvStatus, overrides: Partial<Cv> = {}): Cv {
   }
 }
 
-/** Stores a CV of `owner`, for tests and demos. */
-export function seedCv(owner: MockUser, status: CvStatus, overrides: Partial<Cv> = {}): Cv {
+/** Stores a CV of `owner`, for tests and demos. With `job`, the fake worker moves it on. */
+export function seedCv(
+  owner: MockUser,
+  status: CvStatus,
+  overrides: Partial<Cv> = {},
+  job?: MockJob,
+): Cv {
   const cv = buildCv(status, overrides)
-  updateDb((db) => db.cvs.push({ ownerId: owner.id, cv }))
+  updateDb((db) => db.cvs.push({ ownerId: owner.id, cv, job }))
   return cv
 }

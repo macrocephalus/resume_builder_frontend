@@ -3,6 +3,11 @@ import { queryOptions } from '@tanstack/react-query'
 import { apiRequest } from '@/shared/api/client'
 import { apiPaths } from '@/shared/config/paths'
 
+/** The light status of each CV, for polling. */
+export async function fetchStatuses(ids: readonly string[]) {
+  return (await apiRequest(apiPaths.cvStatuses(ids), cvStatusesResponseSchema)).items
+}
+
 export const cvQueries = {
   all: () => ['cvs'] as const,
   list: () =>
@@ -18,7 +23,6 @@ export const cvQueries = {
   statuses: (ids: readonly string[]) =>
     queryOptions({
       queryKey: [...cvQueries.all(), 'statuses', ids],
-      queryFn: async () =>
-        (await apiRequest(apiPaths.cvStatuses(ids), cvStatusesResponseSchema)).items,
+      queryFn: () => fetchStatuses(ids),
     }),
 }
