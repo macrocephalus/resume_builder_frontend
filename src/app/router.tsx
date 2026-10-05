@@ -2,7 +2,8 @@ import type { QueryClient } from '@tanstack/react-query'
 import type { ComponentType } from 'react'
 import { createBrowserRouter, type LoaderFunction } from 'react-router'
 import { RootLayout } from '@/app/layout/RootLayout'
-import { RouteError } from '@/app/layout/RouteError'
+import { PageError } from '@/app/layout/PageError'
+import { PageSkeleton } from '@/app/layout/PageSkeleton'
 import { routes } from '@/shared/config/paths'
 
 /** What a route module exports. Its loader is a function of the client, so tests get their own. */
@@ -23,10 +24,10 @@ export function createAppRouter(queryClient: QueryClient) {
   return createBrowserRouter([
     {
       Component: RootLayout,
-      HydrateFallback: () => null,
+      HydrateFallback: PageSkeleton,
       children: [
         {
-          ErrorBoundary: RouteError,
+          ErrorBoundary: PageError,
           children: [
             { path: routes.login, lazy: lazy(() => import('@/app/routes/login')) },
             { path: routes.signup, lazy: lazy(() => import('@/app/routes/signup')) },

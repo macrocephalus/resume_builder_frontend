@@ -1,3 +1,5 @@
+import { generatePath } from 'react-router'
+
 // The only file that spells URLs: route patterns, link builders and API endpoints.
 
 /** Path patterns for the route table. */
@@ -5,6 +7,8 @@ export const routes = {
   cvList: '/',
   login: '/login',
   signup: '/signup',
+  newCv: '/cvs/new',
+  cv: '/cvs/:cvId',
 } as const
 
 /**
@@ -33,6 +37,8 @@ export const paths = {
   cvList: () => routes.cvList,
   login: (next?: string | null) => withNext(routes.login, next),
   signup: (next?: string | null) => withNext(routes.signup, next),
+  newCv: () => routes.newCv,
+  cv: (id: string) => generatePath(routes.cv, { cvId: id }),
 }
 
 export const apiPaths = {
@@ -40,4 +46,9 @@ export const apiPaths = {
   login: '/api/auth/login',
   logout: '/api/auth/logout',
   me: '/api/auth/me',
-} as const
+  cvs: '/api/cvs',
+  cv: (id: string) => `/api/cvs/${encodeURIComponent(id)}`,
+  cvRetry: (id: string) => `/api/cvs/${encodeURIComponent(id)}/retry`,
+  cvStatuses: (ids: readonly string[]) =>
+    `/api/cvs/statuses?ids=${ids.map(encodeURIComponent).join(',')}`,
+}

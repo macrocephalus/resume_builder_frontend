@@ -1,5 +1,7 @@
 // The mock backend's data, kept in localStorage so a reload loses nothing.
 
+import type { Cv } from '@cv/shared'
+
 export type MockUser = {
   id: string
   email: string
@@ -13,11 +15,18 @@ type MockDb = {
   sessionUserId: string | null
   /** Times of recent failed logins, by email; the mock throttles after five in 15 minutes. */
   failedLogins: Record<string, number[]>
+  /** Every user's CVs; a handler only ever shows the session user's own. */
+  cvs: MockCv[]
+}
+
+export type MockCv = {
+  ownerId: string
+  cv: Cv
 }
 
 const KEY = 'ai-cv-builder:mock-db'
 
-const emptyDb = (): MockDb => ({ users: [], sessionUserId: null, failedLogins: {} })
+const emptyDb = (): MockDb => ({ users: [], sessionUserId: null, failedLogins: {}, cvs: [] })
 
 export function readDb(): MockDb {
   try {
@@ -44,9 +53,19 @@ export function resetDb(): void {
   localStorage.removeItem(KEY)
 }
 
-/** A user that already exists, for tests and demos. */
-export function seedUser(email: string, password: string): MockUser {
+/** A user that already exists, for tests and demos. `signedIn` also starts their session. */
+export function seedUser(email: string, password: string, { signedIn = false } = {}): MockUser {
   const user = { id: crypto.randomUUID(), email, password }
-  updateDb((db) => db.users.push(user))
+  updateDb((db) => {
+    db.users.push(user)
+    if (signedIn) db.sessionUserId = user.id
+  })
   return user
+}
+
+/** Ends the session on the "server" side, as if the cookie expired. */
+export function expireSession(): void {
+  updateDb((db) => {
+    db.sessionUserId = null
+  })
 }
