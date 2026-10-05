@@ -1,4 +1,4 @@
-import type { CvStatus } from '@cv/shared'
+import { hasDraft, type CvStatus } from '@cv/shared'
 import { act, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
@@ -119,7 +119,7 @@ describe('generation', () => {
     expect(await screen.findByText('Checking facts against your source')).toBeVisible()
 
     await wait(9000)
-    expect(await screen.findByText(/Your draft is ready, with 4 questions/)).toBeVisible()
+    expect(await screen.findByText('4 open questions')).toBeVisible()
     expect(screen.getByText('Needs your answers')).toBeVisible()
     expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
   })
@@ -136,7 +136,7 @@ describe('generation', () => {
 
     expect(await screen.findByText('Writing your CV')).toBeVisible()
     await wait(12000)
-    expect(await screen.findByText(/Your draft is ready/)).toBeVisible()
+    expect(await screen.findByLabelText('CV title')).toBeVisible()
   })
 
   test('"retry" in the role shows a failed attempt being retried, then the draft', async () => {
@@ -153,7 +153,7 @@ describe('generation', () => {
     expect(await screen.findByText('Writing your CV · attempt 2 of 3')).toBeVisible()
 
     await wait(12000)
-    expect(await screen.findByText(/Your draft is ready/)).toBeVisible()
+    expect(await screen.findByLabelText('CV title')).toBeVisible()
   })
 
   test('"ready" in the role ends with no questions', async () => {
@@ -164,8 +164,9 @@ describe('generation', () => {
 
     await wait(15000)
 
-    expect(await screen.findByText('Your draft is ready. The editor comes next.')).toBeVisible()
+    expect(await screen.findByLabelText('CV title')).toBeVisible()
     expect(screen.getByText('Ready')).toBeVisible()
+    expect(screen.queryByText(/open question/)).toBeNull()
   })
 
   test('"fail" in the role ends in Failed, and Retry starts again', async () => {
@@ -184,7 +185,7 @@ describe('generation', () => {
     await user.click(screen.getByRole('button', { name: 'Retry' }))
     expect(await screen.findByText('Starting soon')).toBeVisible()
     await wait(15000)
-    expect(await screen.findByText(/Your draft is ready/)).toBeVisible()
+    expect(await screen.findByLabelText('CV title')).toBeVisible()
   })
 
   test('a CV can be deleted while it is generated', async () => {
@@ -213,7 +214,7 @@ describe('generation', () => {
     await wait(12000)
     expect(await screen.findByText('Writing your CV')).toBeVisible()
     await wait(12000)
-    expect(await screen.findByText('Your draft is ready. The editor comes next.')).toBeVisible()
+    expect(await screen.findByLabelText('CV title')).toBeVisible()
 
     renderApp('/')
     await screen.findByRole('heading', { name: 'First' })
@@ -250,8 +251,8 @@ describe('the CV screen by status', () => {
       ['Retry', 'Delete'],
       false,
     ],
-    ['needs_input', /Your draft is ready, with 2 questions/, ['Delete'], false],
-    ['ready', 'Your draft is ready. The editor comes next.', ['Delete'], false],
+    ['needs_input', '2 open questions', ['Delete'], false],
+    ['ready', 'Ready', ['Delete'], false],
   ])('%s shows its panel and actions', async (status, text, actions, drifts) => {
     const cv = seedCv(signedIn(), status, { title: 'Olena — Backend' })
     renderApp(`/cvs/${cv.id}`)
@@ -259,11 +260,12 @@ describe('the CV screen by status', () => {
     expect(await screen.findByText(text)).toBeVisible()
     expect(screen.getByRole('heading', { level: 1, name: 'Olena — Backend' })).toBeVisible()
     const main = screen.getByRole('main')
-    expect(
-      within(main)
-        .getAllByRole('button')
-        .map((button) => button.textContent),
-    ).toEqual(actions)
+    const buttons = within(main)
+      .getAllByRole('button')
+      .map((button) => button.textContent)
+    // A CV with a draft shows the editor, with its own buttons around the CV actions.
+    if (hasDraft(status)) expect(buttons).toEqual(expect.arrayContaining(actions))
+    else expect(buttons).toEqual(actions)
     // The backdrop drifts while the generation panel is on screen (CSS :has on this marker).
     expect(document.querySelector('[data-backdrop="drift"]') !== null).toBe(drifts)
   })

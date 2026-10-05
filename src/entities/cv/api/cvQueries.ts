@@ -19,6 +19,11 @@ export const cvQueries = {
     queryOptions({
       queryKey: [...cvQueries.all(), 'detail', id],
       queryFn: async () => (await apiRequest(apiPaths.cv(id), cvResponseSchema)).cv,
+      // The editor mounts a fresh form for each new version, so a version fetched behind the
+      // user's back (on focus or reconnect) would drop unsaved edits. A new version comes from
+      // this tab's own save, polling, or an explicit "Reload latest" after a conflict.
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
     }),
   statuses: (ids: readonly string[]) =>
     queryOptions({

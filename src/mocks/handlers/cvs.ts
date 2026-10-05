@@ -3,8 +3,11 @@ import {
   createCvBodySchema,
   cvStatusInfoSchema,
   cvStatusesQuerySchema,
+  dropEmptyItems,
   hasDraft,
   isInProgress,
+  ITEM_SECTIONS,
+  patchCvBodySchema,
   type Cv,
   type CvSummary,
 } from '@cv/shared'
@@ -71,6 +74,22 @@ function limitResponse(db: MockDb, userId: string, now: number) {
 
 function countGeneration(db: MockDb, userId: string, now: number): void {
   db.generations[userId] = [...(db.generations[userId] ?? []).filter((at) => now - at < HOUR), now]
+}
+
+/**
+ * After an edit: an open question about an item that is gone is skipped, and a `needs_input` CV
+ * with no open question left becomes `ready` (docs/api.md, PATCH).
+ */
+function skipQuestionsAboutRemovedItems(cv: Cv): void {
+  const ids = new Set(ITEM_SECTIONS.flatMap((section) => cv.data?.[section].map((item) => item.id)))
+  cv.questions = cv.questions.map((question) =>
+    question.status === 'open' && question.target.itemId && !ids.has(question.target.itemId)
+      ? { ...question, status: 'skipped' }
+      : question,
+  )
+  if (cv.status === 'needs_input' && !cv.questions.some((question) => question.status === 'open')) {
+    cv.status = 'ready'
+  }
 }
 
 export const cvHandlers = [
@@ -146,6 +165,39 @@ export const cvHandlers = [
     if (!user) return unauthorized()
     const entry = ownEntries(currentDb(), user.id).find((own) => own.cv.id === params.id)
     return entry ? HttpResponse.json({ cv: entry.cv }) : notFound()
+  }),
+
+  http.patch('/api/cvs/:id', async ({ params, request }) => {
+    const user = sessionUser()
+    if (!user) return unauthorized()
+    const body = patchCvBodySchema.safeParse(await readJson(request))
+    if (!body.success) return validationError(body.error)
+    const now = Date.now()
+
+    const result = updateDb((db) => {
+      runWorker(db.cvs, now)
+      const entry = ownEntries(db, user.id).find((own) => own.cv.id === params.id)
+      if (!entry) return notFound()
+      if (!hasDraft(entry.cv.status) || !entry.cv.data) {
+        return errorResponse(409, 'INVALID_STATE', 'This CV has no draft to edit yet.')
+      }
+      if (body.data.version !== entry.cv.version) {
+        return errorResponse(409, 'VERSION_CONFLICT', 'This CV was changed somewhere else.', {
+          details: { currentVersion: entry.cv.version },
+        })
+      }
+      const data = body.data.data ? dropEmptyItems(body.data.data) : entry.cv.data
+      entry.cv = {
+        ...entry.cv,
+        title: body.data.title ?? entry.cv.title,
+        data,
+        version: entry.cv.version + 1,
+        updatedAt: new Date(now).toISOString(),
+      }
+      skipQuestionsAboutRemovedItems(entry.cv)
+      return entry.cv
+    })
+    return result instanceof Response ? result : HttpResponse.json({ cv: result })
   }),
 
   http.delete('/api/cvs/:id', ({ params }) => {

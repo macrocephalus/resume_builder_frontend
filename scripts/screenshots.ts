@@ -11,6 +11,10 @@ type Screen = {
   signedIn?: boolean
   /** Create a CV for this role through the form first, and wait for this text on its page. */
   create?: { role: string; waitFor: string }
+  /** What to do on the page before the screenshot. */
+  act?: (page: Page) => Promise<void>
+  /** Only the viewport, so sticky bars show where a user sees them. */
+  viewportOnly?: boolean
 }
 
 const screens: Screen[] = [
@@ -30,6 +34,22 @@ const screens: Screen[] = [
     path: '/cvs/new',
     signedIn: true,
     create: { role: 'Fail Engineer', waitFor: 'The AI service is unavailable' },
+  },
+  {
+    name: 'cv-editor',
+    path: '/cvs/new',
+    signedIn: true,
+    create: { role: 'Senior Backend Engineer', waitFor: '4 open questions' },
+  },
+  {
+    name: 'cv-editor-unsaved',
+    path: '/',
+    signedIn: true,
+    act: async (page) => {
+      await page.getByRole('link', { name: 'Open' }).first().click()
+      await page.getByLabel('About you').fill('Backend engineer with six years of Node.js.')
+    },
+    viewportOnly: true,
   },
 ]
 const widths = [390, 1280]
@@ -75,11 +95,13 @@ try {
         await page.getByLabel('Target role').fill(screen.create.role)
         await page.getByLabel('Your experience').fill(sampleExperience)
         await page.getByRole('button', { name: 'Create CV' }).click()
-        await page.getByText(screen.create.waitFor).waitFor({ timeout: 20_000 })
+        // The fake worker takes one CV at a time, so a CV may wait for the one before it.
+        await page.getByText(screen.create.waitFor).waitFor({ timeout: 45_000 })
       }
+      await screen.act?.(page)
       await page.evaluate('document.fonts.ready')
       const file = `${outDir}${screen.name}-${width}.png`
-      await page.screenshot({ path: file, fullPage: true })
+      await page.screenshot({ path: file, fullPage: !screen.viewportOnly })
       console.log(file)
     }
 
