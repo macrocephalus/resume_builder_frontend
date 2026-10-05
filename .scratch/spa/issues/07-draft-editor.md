@@ -26,3 +26,5 @@ instead of overwriting newer work.
 - [ ] Tests: edit and save, cancel, add / remove / reorder an item, rename only, version conflict notice and reload, empty item dropped, unsaved-changes guard
 - [ ] The look follows `frontend/docs/design.md`; screenshots at 390 px and 1280 px in mock mode are checked against the prototype and mentioned in the report
 - [ ] `pnpm typecheck && pnpm lint && pnpm build`, the format check and the tests pass
+
+**Architecture:** Structure follows `frontend/docs/architecture.md` §6–§7: the editor lives in `cv-editor/components/editor/`, the form schema and the draft ↔ form mapping in `cv-editor/model/`; the active panel is the `?tab=` search param, written with `replace`.

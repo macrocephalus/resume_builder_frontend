@@ -26,3 +26,5 @@ the flow runs from sign-up to a generated draft (shown as a placeholder until th
 - [ ] Tests: create → progress → draft appears without reload; each of the six statuses shows the right panel and actions; limit error on submit; retry
 - [ ] The look follows `frontend/docs/design.md`; screenshots at 390 px and 1280 px in mock mode are checked against the prototype and mentioned in the report
 - [ ] `pnpm typecheck && pnpm lint && pnpm build`, the format check and the tests pass
+
+**Architecture:** Structure follows `frontend/docs/architecture.md`: the in-progress and failed panels are `cv-editor/components/progress/`, picked by `CvScreen`; `useRetryCv` and the polling hook live in `entities/cv/api`; the fake worker is `src/mocks/worker.ts`; limit texts are in `cv-create/model/`.

@@ -20,3 +20,5 @@ is told what is missing instead of being blocked.
 - [ ] Tests: dirty form saves before downloading; failed save stops the download; note about missing blocks
 - [ ] The look follows `frontend/docs/design.md`; screenshots at 390 px and 1280 px in mock mode are checked against the prototype and mentioned in the report
 - [ ] `pnpm typecheck && pnpm lint && pnpm build`, the format check and the tests pass
+
+**Architecture:** Structure follows `frontend/docs/architecture.md`: the button lives in `cv-editor/components/pdf/`, `useDownloadPdf` in `cv-editor/api/`.

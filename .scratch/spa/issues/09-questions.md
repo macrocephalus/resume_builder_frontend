@@ -24,3 +24,5 @@ closing the last question makes the CV ready.
 - [ ] Tests: validation per kind, answer updates the field, skip, `confirm` has no Skip, last question → ready, save-before-answer, deleted item removes its question
 - [ ] The look follows `frontend/docs/design.md`; screenshots at 390 px and 1280 px in mock mode are checked against the prototype and mentioned in the report
 - [ ] `pnpm typecheck && pnpm lint && pnpm build`, the format check and the tests pass
+
+**Architecture:** Structure follows `frontend/docs/architecture.md`: the panel and cards live in `cv-editor/components/questions/`, the mutations in `cv-editor/api/`; the Questions panel is a value of the `?tab=` search param.

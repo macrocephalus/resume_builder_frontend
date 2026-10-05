@@ -25,6 +25,9 @@ and the route protection every later screen stands on.
 - [ ] Not-found screen; route error boundary with Retry; navigation progress line in the top bar; without mock mode and without a backend the app shows "cannot reach the server" with Retry, never fake data
 - [ ] Primitives built here, by the catalogue: `Button`, `Field`, `Input`, `Notice`, `GlassCard`, `ErrorState`
 - [ ] The screenshot script runs in mock mode from now on
+- [ ] oxlint: `src/mocks` imports nothing from the layers; no layer imports `src/mocks` or `src/tests` (ADR 0003)
 - [ ] Tests through the real router, providers and API client against the mock handlers: sign up, taken email, login failure, redirect with return address and back, `401` handling, signed-in user on login, log out
 - [ ] The look follows `frontend/docs/design.md`; screenshots at 390 px and 1280 px in mock mode are checked against the prototype and mentioned in the report
 - [ ] `pnpm typecheck && pnpm lint && pnpm build`, the format check and the tests pass
+
+**Architecture:** Structure follows `frontend/docs/architecture.md`: mock mode in `src/mocks`, switched by `vite --mode mock` (ADR 0003); flow tests in `src/tests` with `renderApp()`; the router is `createAppRouter(queryClient)`; URLs only in `src/shared/config/paths.ts` (including the `next` check); `401` handled in `app/providers/queryClient.ts`; error-code texts in the feature's `model/`.

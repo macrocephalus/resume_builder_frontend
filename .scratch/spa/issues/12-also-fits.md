@@ -20,3 +20,5 @@ generated from the same source and facts, without re-entering anything.
 - [ ] `pnpm typecheck && pnpm lint && pnpm build`, the format check and the tests pass
 
 **Notes:** The chips sit in the has-draft header, which ticket 07 builds; if 07 is not done yet, build the header minimal here.
+
+**Architecture:** Structure follows `frontend/docs/architecture.md`: the chip link is built with `paths.newCv({ fromCvId, role })`; `cv-editor` does not import `cv-create`.

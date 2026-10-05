@@ -24,3 +24,5 @@ an empty state when there are none, and can delete a CV. Mock mode gets its CV s
 - [ ] Tests: empty state, rows for CVs in different statuses with the right labels and actions, delete with confirmation
 - [ ] The look follows `frontend/docs/design.md`; screenshots at 390 px and 1280 px in mock mode are checked against the prototype and mentioned in the report
 - [ ] `pnpm typecheck && pnpm lint && pnpm build`, the format check and the tests pass
+
+**Architecture:** Structure follows `frontend/docs/architecture.md`: `useDeleteCv` lives in `entities/cv/api` (the CV screen uses it too); segments are `api/`, `model/`, `components/`; links come from `paths.ts`; the flow test goes to `src/tests`.

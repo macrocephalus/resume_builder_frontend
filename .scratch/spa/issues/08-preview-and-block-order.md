@@ -19,3 +19,5 @@ preview follows that order and never shows an empty block or field.
 - [ ] Tests: reorder blocks → preview order changes and persists after save; a draft with only a name shows no block headings
 - [ ] The look follows `frontend/docs/design.md`; screenshots at 390 px and 1280 px in mock mode are checked against the prototype and mentioned in the report
 - [ ] `pnpm typecheck && pnpm lint && pnpm build`, the format check and the tests pass
+
+**Architecture:** Structure follows `frontend/docs/architecture.md`: the sheet lives in `cv-editor/components/preview/`; the Preview panel is a value of the `?tab=` search param.

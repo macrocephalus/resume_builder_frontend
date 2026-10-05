@@ -18,3 +18,5 @@ where they can check and fix it before generating. Bad files produce clear messa
 - [ ] Tests: successful upload fills the text area; wrong type, too large, scan
 - [ ] The look follows `frontend/docs/design.md`; screenshots at 390 px and 1280 px in mock mode are checked against the prototype and mentioned in the report
 - [ ] `pnpm typecheck && pnpm lint && pnpm build`, the format check and the tests pass
+
+**Architecture:** Structure follows `frontend/docs/architecture.md`: the upload and `useIngestPdf` belong to `cv-create`; ingest error texts are in its `model/`.
