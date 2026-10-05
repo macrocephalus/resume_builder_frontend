@@ -1,10 +1,18 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
   "plugins": ["react", "typescript", "oxc", "import", "jsx-a11y"],
-  "categories": { "correctness": "error" },
+  "categories": {
+    "correctness": "error"
+  },
   "rules": {
     "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }],
+    "react/only-export-components": [
+      "warn",
+      {
+        "allowConstantExport": true,
+        "allowExportNames": ["loader", "handle"]
+      }
+    ],
     "import/no-cycle": "error",
     "no-restricted-imports": [
       "error",
@@ -20,6 +28,26 @@
   },
   "overrides": [
     {
+      "files": ["src/app/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "regex": "(^|/)\\.\\.(/|$)",
+                "message": "Import through the @/ alias; relative imports are for ./ siblings only."
+              },
+              {
+                "regex": "^@/(mocks|tests)(/|$)",
+                "message": "No layer imports src/mocks or src/tests (ADR 0003)."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
       "files": ["src/shared/**"],
       "rules": {
         "no-restricted-imports": [
@@ -33,6 +61,10 @@
               {
                 "regex": "^@/(app|features|entities)(/|$)",
                 "message": "The src/shared layer imports nothing from app, features or entities (ADR 0002)."
+              },
+              {
+                "regex": "^@/(mocks|tests)(/|$)",
+                "message": "No layer imports src/mocks or src/tests (ADR 0003)."
               }
             ]
           }
@@ -53,6 +85,10 @@
               {
                 "regex": "^@/(app|features)(/|$)",
                 "message": "entities import only from the src/shared layer (ADR 0002)."
+              },
+              {
+                "regex": "^@/(mocks|tests)(/|$)",
+                "message": "No layer imports src/mocks or src/tests (ADR 0003)."
               }
             ]
           }
@@ -77,6 +113,10 @@
               {
                 "group": ["@/features/**"],
                 "message": "A feature imports only from itself, entities and the src/shared layer (ADR 0002)."
+              },
+              {
+                "regex": "^@/(mocks|tests)(/|$)",
+                "message": "No layer imports src/mocks or src/tests (ADR 0003)."
               }
             ]
           }
@@ -101,6 +141,10 @@
               {
                 "group": ["@/features/**", "!@/features/auth/**"],
                 "message": "A feature imports only from itself, entities and the src/shared layer (ADR 0002)."
+              },
+              {
+                "regex": "^@/(mocks|tests)(/|$)",
+                "message": "No layer imports src/mocks or src/tests (ADR 0003)."
               }
             ]
           }
@@ -125,6 +169,10 @@
               {
                 "group": ["@/features/**", "!@/features/cv-list/**"],
                 "message": "A feature imports only from itself, entities and the src/shared layer (ADR 0002)."
+              },
+              {
+                "regex": "^@/(mocks|tests)(/|$)",
+                "message": "No layer imports src/mocks or src/tests (ADR 0003)."
               }
             ]
           }
@@ -149,6 +197,10 @@
               {
                 "group": ["@/features/**", "!@/features/cv-create/**"],
                 "message": "A feature imports only from itself, entities and the src/shared layer (ADR 0002)."
+              },
+              {
+                "regex": "^@/(mocks|tests)(/|$)",
+                "message": "No layer imports src/mocks or src/tests (ADR 0003)."
               }
             ]
           }
@@ -173,6 +225,30 @@
               {
                 "group": ["@/features/**", "!@/features/cv-editor/**"],
                 "message": "A feature imports only from itself, entities and the src/shared layer (ADR 0002)."
+              },
+              {
+                "regex": "^@/(mocks|tests)(/|$)",
+                "message": "No layer imports src/mocks or src/tests (ADR 0003)."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["src/mocks/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "regex": "(^|/)\\.\\.(/|$)",
+                "message": "Import through the @/ alias; relative imports are for ./ siblings only."
+              },
+              {
+                "regex": "^@/(app|features|entities|shared|tests)(/|$)",
+                "message": "src/mocks imports only the contract package and itself, nothing from the layers (ADR 0003)."
               }
             ]
           }

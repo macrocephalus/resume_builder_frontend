@@ -64,7 +64,8 @@ const underGlass = ['bg', 'blob-1', 'blob-2', 'blob-3', 'blob-4', 'blob-5']
 describe('text on glass passes WCAG AA', () => {
   const tint = rgba(token('glass-tint'))
 
-  describe.each(['ink', 'accent'])('%s', (text) => {
+  // `bad` is the field error text inside the glass auth card.
+  describe.each(['ink', 'accent', 'bad'])('%s', (text) => {
     test.each(underGlass)('over %s without the blur', (shape) => {
       const glass = over(tint, hex(token(shape)))
 
