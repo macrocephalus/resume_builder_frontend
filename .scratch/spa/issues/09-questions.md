@@ -4,7 +4,7 @@
 text, a tick list or yes / no, or skips them. Each answer shows up in its field at once, and
 closing the last question makes the CV ready.
 
-**Blocked by:** 07
+**Blocked by:** 07, 08 (the tabs and `?tab=` come with 08)
 
 **Status:** ready-for-agent
 

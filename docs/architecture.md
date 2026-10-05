@@ -274,6 +274,12 @@ Context or a store.
 - **The editor is one form** over the whole draft plus the title.
   - It is keyed by CV id and version. A new server version remounts it with fresh default values,
     so there are no syncing effects.
+  - **Cancel remounts it too**, by a counter in the key. RHF's `reset()` empties its field
+    registry and waits for inputs to register again on the next render; React Compiler skips that
+    render, so the inputs would keep the typed values.
+  - Because a new version remounts the form, the detail query does not refetch on window focus or
+    reconnect (`cvQueries.detail`): a version fetched behind the user's back would drop unsaved
+    edits. And while a save runs the fields are disabled, since its answer remounts the form.
   - Inputs are uncontrolled (`register`); item lists use `useFieldArray`; new items get
     `crypto.randomUUID()`.
   - Only the save bar reads dirty state (`useFormState`), so typing does not re-render the screen.
@@ -281,10 +287,13 @@ Context or a store.
     `useDeferredValue`.
 - **Save** sends the version, the title if it changed, and the draft with empty items dropped. On
   success the cache gets the returned CV and the form remounts. A `409 VERSION_CONFLICT` shows the
-  conflict notice with "Reload latest".
+  conflict notice with "Reload latest"; the save bar then offers no Save, which could only
+  conflict again.
 - **Save before action.** Answer, skip and download save a dirty form first; a failed save stops
   the action.
-- **Leaving with unsaved changes:** a `beforeunload` prompt and a router blocker.
+- **Leaving with unsaved changes:** a `beforeunload` prompt and a router blocker, both in the save
+  bar. The blocker lets through a change of search params only (`?tab=`), the way to login (the
+  session ended) and a navigation with the `discardEdits` state (the CV was deleted).
 
 ## 7. Where state lives
 

@@ -15,7 +15,8 @@ preview follows that order and never shows an empty block or field.
 - [ ] Headings come from the CV language's list in the `shared` package; blocks follow `sectionOrder`; contacts is always first
 - [ ] Empty blocks, empty items and empty fields are not rendered — no stray headings, separators or `undefined`
 - [ ] Blocks can be moved up / down in the editor; the order is saved with the draft and survives a reload
-- [ ] From 980 px the preview is a tab of the side panel; below it, one of the panels behind the segmented control
+- [ ] Two columns from 980 px (`1.08fr` / `.92fr`): the editor and the side panel; from 980 px the preview is a tab of the side panel; below it, one of the panels behind the segmented control
+- [ ] Glass `SegmentedControl` (moved here from 07), sticky under the top bar below 980 px; the active panel is the `?tab=` search param, written with `replace`; at most three glass surfaces on the phone layout
 - [ ] Tests: reorder blocks → preview order changes and persists after save; a draft with only a name shows no block headings
 - [ ] The look follows `frontend/docs/design.md`; screenshots at 390 px and 1280 px in mock mode are checked against the prototype and mentioned in the report
 - [ ] `pnpm typecheck && pnpm lint && pnpm build`, the format check and the tests pass
