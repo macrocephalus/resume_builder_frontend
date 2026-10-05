@@ -16,6 +16,7 @@
     "screenshots": "node scripts/screenshots.ts"
   },
   "dependencies": {
+    "@cv/shared": "workspace:*",
     "@fontsource/golos-text": "^5.3.0",
     "@fontsource/jetbrains-mono": "^5.3.0",
     "@fontsource/unbounded": "^5.3.0",
