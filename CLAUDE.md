@@ -19,6 +19,8 @@ contract: `docs/api.md`; statuses: `docs/cv-statuses.md`.
 - `pnpm format` / `pnpm format:check` — Prettier with `prettier-plugin-tailwindcss` (write / check)
 - `pnpm test` / `pnpm test:watch` — Vitest + Testing Library in jsdom (once / watch)
 - `pnpm build` — typecheck + production build
+- `pnpm screenshots` — Playwright captures each screen at 390 px and 1280 px into
+  `.scratch/screens/` (gitignored); once before: `pnpm exec playwright install chromium`
 
 Dependencies are installed from the repo root (`pnpm install`): one workspace, one lockfile.
 
