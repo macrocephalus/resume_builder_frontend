@@ -7,8 +7,9 @@ SPA for the AI CV Builder. Talks to the NestJS backend over REST; no SSR.
 Vite + React 19 + TypeScript, React Compiler (Babel preset in `vite.config.ts`), Tailwind CSS v4,
 React Router (data mode, `createBrowserRouter`), TanStack Query, React Hook Form + Zod, oxlint.
 No UI kit: own primitives in `src/shared/ui` on native elements, `lucide-react` icons,
-self-hosted fonts via `@fontsource`. Design tokens, routes, data flow and layouts:
-`docs/architecture.md` §11; API contract: `docs/api.md`; statuses: `docs/cv-statuses.md`.
+self-hosted fonts via `@fontsource`. Look, tokens, primitives, layouts and states:
+`frontend/docs/design.md`; routes and data flow: `docs/architecture.md` §11; API contract:
+`docs/api.md`; statuses: `docs/cv-statuses.md`.
 
 ## Commands
 
@@ -33,13 +34,27 @@ Dependencies are installed from the repo root (`pnpm install`): one workspace, o
 
 ```
 src/
-  app/         router, providers (QueryClient), root layout
-  features/    one folder per feature: auth, cv-list, cv-create, cv-editor
-               each holds its components, hooks, api calls and query keys
-  shared/      api client, UI primitives, utils — no feature logic
+  app/         router, providers (QueryClient), layout (top bar, backdrop)
+    routes/    thin route modules: `lazy`, `loader`, `ErrorBoundary`; the only code that knows URLs
+  features/    one folder per user task: auth, cv-list, cv-create, cv-editor
+               components/, api/ (query options, mutations), model/ (form schemas, maps)
+  entities/
+    cv/        what several features need about a CV: `cvQueries`, status → label/tone/actions,
+               status pill, match bar, status polling
+  shared/      api client, UI primitives (`ui/`), utils (`lib/`) — no domain logic
 ```
 
-A feature may import from `shared/`, never from another feature's internals.
+Imports go only downwards: `app → features → entities → shared`; a feature never imports another
+feature. oxlint enforces it (`no-restricted-imports` per folder, `import/no-cycle`). Import via the
+`@/` alias, not `../../`. Why not FSD: `docs/adr/0002-layers-app-features-entities-shared.md`.
+
+Two different "shared": the **`src/shared` layer** (this app's primitives and client) and the
+**`shared` workspace package** (the contract: Zod schemas, `isInProgress`, `computeMatch`). Always
+say which one you mean.
+
+Files: one component per `PascalCase.tsx`, hooks in `useX.ts`, **named exports only** (route
+modules export `Component` / `loader` / `ErrorBoundary` as React Router expects), tests next to
+the file (`X.test.tsx`).
 
 ## Rules
 
@@ -53,13 +68,44 @@ A feature may import from `shared/`, never from another feature's internals.
   the component that uses it.
 - **Treat API responses as untrusted:** parse them with the Zod schemas before use.
 - **Generation is a background job.** Start it with a mutation, then poll
-  `GET /api/cvs/statuses` with `refetchInterval` while any CV `isInProgress` (from `shared`); when
-  one leaves that group, invalidate its detail and the list. Never poll the full CV. The CV id is
-  in the URL, so a reload resumes polling — don't rely on in-memory state or streaming.
-- **Statuses are mapped, never derived.** Label, color and actions come from the status string
-  (`docs/cv-statuses.md`); don't infer status from other fields.
-- **Mobile first.** Style for phone width, add `sm:` / `md:` breakpoints on top.
+  `GET /api/cvs/statuses` with `refetchInterval` while any CV `isInProgress` (from the `shared`
+  package); when one leaves that group, invalidate its detail and the list. Never poll the full
+  CV. The CV id is in the URL, so a reload resumes polling — don't rely on in-memory state or
+  streaming.
+- **Statuses are mapped, never derived.** Label, tone and actions come from the status string
+  (`docs/cv-statuses.md`) via the map in `entities/cv`; don't infer status from other fields.
+- **Data loading:** a route `loader` calls `queryClient.ensureQueryData(...)`, the screen reads
+  with `useSuspenseQuery`; errors go to the route `ErrorBoundary` (`ErrorState` with Retry).
+  Polling stays on plain `useQuery`. A failed mutation shows its error next to its control; no
+  toasts.
+- **Mobile first.** Style for phone width, add `md:` (760 px) / `lg:` (980 px) on top.
 - Every async view handles loading, error (with retry) and empty states.
+- **Tests:** Vitest + Testing Library against MSW handlers; the same handlers power mock mode.
+
+## Styling
+
+Full reference: `frontend/docs/design.md`. The rules an agent must not break:
+
+- **Tokens only.** Colours come from the semantic `@theme` tokens (`ink`, `surface`, `accent`,
+  `wait`…); the default Tailwind palette is off and arbitrary colours (`text-[#…]`) are banned.
+- **Look belongs to primitives.** `features/` and `entities/` use only layout utilities (flex,
+  grid, gap, spacing, size, breakpoints); colour, border, radius, shadow and type come from
+  `src/shared/ui`. Need a new look → add a primitive variant.
+- **Variants** are a `Record<Variant, string>` + `cx()`; no `cva`, `tailwind-merge`, CSS-in-JS or
+  inline `style` (except passing a CSS variable).
+- **Primitives:** native element props, `ref` as a prop, named export, built when first needed,
+  names from the catalogue in `design.md` — don't invent a `Badge` next to `Pill`.
+- **Tone, not colour:** primitives take `tone: neutral | accent | wait | ok | bad`.
+- **Glass only on the glass layer** (top bar, tab switcher, save bar, auth card) via the `glass`
+  utility inside `src/shared/ui` / `src/app/layout`; content, inputs and the preview sheet stay
+  solid; text on glass is `ink` or `accent` only. Why:
+  `docs/adr/0001-own-css-glass-on-glass-layer-only.md`.
+- **Light theme only.** No dark variants.
+- **Motion:** CSS only, behind `motion-safe:`; never animate blur.
+- **a11y:** `focus-visible:`, touch targets ≥ 40 px, 16 px inputs, `aria-label` on icon-only
+  buttons, decorative icons `aria-hidden`.
+- **Check the look:** UI tickets end with screenshots at 390 px and 1280 px in mock mode
+  (`design.md` → *Checking the look*).
 
 ## Performance rules
 
