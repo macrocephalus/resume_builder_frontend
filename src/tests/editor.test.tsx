@@ -15,8 +15,7 @@ const signedIn = () => seedUser('ann@example.com', 'correct-horse', { signedIn: 
 async function openEditor(overrides: Partial<Cv> = {}) {
   const cv = seedCv(signedIn(), 'ready', { title: 'Olena — Backend', ...overrides })
   renderApp(`/cvs/${cv.id}`)
-  // The first visit loads the lazy route module, which can take a while in a cold test run.
-  await screen.findByLabelText('CV title', {}, { timeout: 5000 })
+  await screen.findByLabelText('CV title')
   return { cv, user: userEvent.setup() }
 }
 
@@ -251,7 +250,7 @@ describe('Draft editor', () => {
     const cv = seedCv(signedIn(), 'ready', { title: 'Olena — Backend' })
     renderApp(`/cvs/${cv.id}`)
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
-    await user.type(await screen.findByLabelText('About you', {}, { timeout: 5000 }), ' Mine.')
+    await user.type(await screen.findByLabelText('About you'), ' Mine.')
     saveInAnotherTab(cv.id)
 
     // Long enough for the CV to count as stale, then the tab loses and regains focus.

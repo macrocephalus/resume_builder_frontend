@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom/vitest'
 import { File as NodeFile } from 'node:buffer'
-import { cleanup } from '@testing-library/react'
+import { cleanup, configure } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll } from 'vitest'
 import { server } from '@/mocks/server'
 import { resetDb } from '@/mocks/store'
@@ -10,6 +10,10 @@ import { resetDb } from '@/mocks/store'
 const nodeFormData = await new Response(new URLSearchParams('probe=1')).formData()
 globalThis.FormData = nodeFormData.constructor as typeof FormData
 globalThis.File = NodeFile as unknown as typeof File
+
+// The first screen of a test file loads its lazy route module, which can take more than the
+// default second when many test files run at once.
+configure({ asyncUtilTimeout: 5000 })
 
 beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
 
