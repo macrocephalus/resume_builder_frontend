@@ -1,6 +1,14 @@
-import { answerSchemaFor, SKIPPABLE_KINDS, type Cv, type Question } from '@cv/shared'
+import {
+  answerSchemaFor,
+  applyAnswer,
+  SKIPPABLE_KINDS,
+  storedAnswer,
+  targetExists,
+  type Cv,
+  type Question,
+} from '@cv/shared'
 import { http, HttpResponse } from 'msw'
-import { applyAnswer, readyWhenAnswered, storedAnswer, targetExists } from '@/mocks/answers'
+import { readyWhenAnswered } from '@/mocks/cv-status'
 import { sessionUser, unauthorized } from '@/mocks/handlers/auth'
 import { HOUR } from '@/mocks/handlers/cvs'
 import { errorResponse, readJson, validationError } from '@/mocks/respond'
@@ -69,7 +77,7 @@ export const questionHandlers = [
               )
             : validationError(answer.error)
         }
-        cv.data = applyAnswer(cv.data!, question, answer.data)
+        cv.data = applyAnswer(cv.data!, question, answer.data, () => crypto.randomUUID())
         question.status = 'answered'
         question.answer = storedAnswer(answer.data)
       },

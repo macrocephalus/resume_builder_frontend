@@ -12,7 +12,7 @@ import {
   type CvSummary,
 } from '@cv/shared'
 import { http, HttpResponse } from 'msw'
-import { readyWhenAnswered } from '@/mocks/answers'
+import { readyWhenAnswered } from '@/mocks/cv-status'
 import { buildCv } from '@/mocks/fixtures/cv'
 import { cvPdf } from '@/mocks/fixtures/pdf'
 import { sessionUser, unauthorized } from '@/mocks/handlers/auth'
