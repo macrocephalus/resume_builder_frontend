@@ -52,6 +52,18 @@ const screens: Screen[] = [
     viewportOnly: true,
   },
   {
+    name: 'cv-pdf',
+    path: '/',
+    signedIn: true,
+    act: async (page) => {
+      await page.getByRole('link', { name: 'Open' }).first().click()
+      await page.getByLabel('About you').fill('')
+      // The download sits in the header: back to the top, where the note shows.
+      await page.evaluate('window.scrollTo(0, 0)')
+    },
+    viewportOnly: true,
+  },
+  {
     name: 'cv-questions',
     path: '/',
     signedIn: true,
