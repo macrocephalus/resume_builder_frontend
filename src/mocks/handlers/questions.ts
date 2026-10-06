@@ -16,7 +16,10 @@ import { runWorker } from '@/mocks/worker'
 
 type Params = { id: string; questionId: string }
 
-/** Finds the session user's CV and its open question, or the error the API would answer. */
+/**
+ * Finds the session user's CV and its open question, or the error the API would answer, and lets
+ * `close` close it. Only a change to the draft (an answer) moves the version.
+ */
 function openQuestion(params: Params, close: (cv: Cv, question: Question) => Response | void) {
   const user = sessionUser()
   if (!user) return unauthorized()
@@ -40,7 +43,6 @@ function openQuestion(params: Params, close: (cv: Cv, question: Question) => Res
     const refused = close(entry.cv, question)
     if (refused) return refused
     readyWhenAnswered(entry.cv)
-    entry.cv.version += 1
     entry.cv.updatedAt = new Date(now).toISOString()
     return HttpResponse.json({ cv: entry.cv })
   })
@@ -58,6 +60,7 @@ export const questionHandlers = [
           : validationError(answer.error)
       }
       cv.data = applyAnswer(cv.data!, question, answer.data, () => crypto.randomUUID())
+      cv.version += 1
       question.status = 'answered'
       question.answer = storedAnswer(answer.data)
     })

@@ -192,13 +192,15 @@ describe('Answering', () => {
   })
 
   test('Skip closes a question and leaves its field empty', async () => {
-    const { user } = await openQuestions()
+    const { cv, user } = await openQuestions()
 
     await user.click(within(card(PHONE)).getByRole('button', { name: 'Skip' }))
 
     await user.click(await screen.findByText(/^Answered \(1\)$/))
     expect(screen.getByText('Skipped')).toBeVisible()
     expect(screen.getByLabelText(/^Phone/)).toHaveValue('')
+    // The draft is as it was, so its version is too (as the API does it).
+    expect(stored(cv.id).version).toBe(cv.version)
   })
 
   test('closing the last question makes the CV ready', async () => {
