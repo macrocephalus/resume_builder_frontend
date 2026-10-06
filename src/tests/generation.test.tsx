@@ -1,10 +1,11 @@
 import { hasDraft, type CvStatus } from '@cv/shared'
 import { act, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, onTestFinished, test, vi } from 'vitest'
 import { seedCv } from '@/mocks/fixtures/cv'
 import { exhaustHourlyLimit } from '@/mocks/handlers/cvs'
-import { seedUser } from '@/mocks/store'
+import { server } from '@/mocks/server'
+import { seedUser, updateDb } from '@/mocks/store'
 import { renderApp } from '@/tests/renderApp'
 
 const SOURCE =
@@ -24,6 +25,23 @@ const setupUser = () => userEvent.setup({ advanceTimers: vi.advanceTimersByTime 
 /** Lets `ms` of time pass, so the fake worker moves on and polling runs. */
 async function wait(ms: number) {
   await act(() => vi.advanceTimersByTimeAsync(ms))
+}
+
+/** Deletes a CV the way another tab or device would: behind this tab's back. */
+const deleteElsewhere = (id: string) =>
+  updateDb((db) => {
+    db.cvs = db.cvs.filter((entry) => entry.cv.id !== id)
+  })
+
+/** How many status polls the app sends during the test. */
+function statusPolls() {
+  const polls = { count: 0 }
+  const listener = ({ request }: { request: Request }) => {
+    if (new URL(request.url).pathname === '/api/cvs/statuses') polls.count += 1
+  }
+  server.events.on('request:start', listener)
+  onTestFinished(() => server.events.removeListener('request:start', listener))
+  return polls
 }
 
 async function createCv(role: string, user = setupUser()) {
@@ -252,6 +270,46 @@ describe('generation', () => {
     await wait(12000)
     expect(await within(row()).findByText('Ready')).toBeVisible()
     expect(within(row()).getByRole('link', { name: 'Open' })).toBeVisible()
+  })
+})
+
+describe('a CV deleted elsewhere while it is generated', () => {
+  test('leaves My CVs, and polling stops', async () => {
+    const ann = signedIn()
+    const kept = seedCv(ann, 'ready', { title: 'Kept' })
+    const gone = seedCv(
+      ann,
+      'queued',
+      { title: 'Gone' },
+      { queuedAt: Date.now(), scenario: 'ready' },
+    )
+    renderApp('/')
+    await screen.findByRole('heading', { name: 'Gone' })
+    const polls = statusPolls()
+
+    deleteElsewhere(gone.id)
+    await wait(3000)
+
+    await waitFor(() => expect(screen.queryByRole('heading', { name: 'Gone' })).toBeNull())
+    expect(screen.getByRole('heading', { name: kept.title })).toBeVisible()
+    const after = polls.count
+    await wait(9000)
+    expect(polls.count).toBe(after)
+  })
+
+  test('its open page says it is gone, and polling stops', async () => {
+    const cv = seedCv(signedIn(), 'generating', { title: 'Gone' })
+    renderApp(`/cvs/${cv.id}`)
+    await screen.findByText('Writing your CV')
+    const polls = statusPolls()
+
+    deleteElsewhere(cv.id)
+    await wait(3000)
+
+    expect(await screen.findByRole('heading', { name: 'Page not found' })).toBeVisible()
+    const after = polls.count
+    await wait(9000)
+    expect(polls.count).toBe(after)
   })
 })
 

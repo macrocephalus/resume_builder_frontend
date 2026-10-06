@@ -12,8 +12,18 @@ const isNewer = (info: CvStatusInfo, cached: { updatedAt: string }) =>
  * Brings fresh statuses into the cached CVs. While a CV is in progress its light fields are
  * patched in; once it leaves that group its detail and the list are refetched, because only then
  * do they change for real.
+ *
+ * The endpoint leaves out an id it no longer knows, so a CV asked for and not in the answer was
+ * deleted elsewhere: it leaves the list, and its detail is dropped and asked again, which a
+ * page showing it gets as Not found. Either way nothing polls it any more.
  */
-function applyStatuses(queryClient: QueryClient, items: CvStatusInfo[]): void {
+function applyStatuses(
+  queryClient: QueryClient,
+  ids: readonly string[],
+  items: CvStatusInfo[],
+): void {
+  const answered = new Set(items.map((info) => info.id))
+  const gone = new Set(ids.filter((id) => !answered.has(id)))
   const left = items.filter((info) => !isInProgress(info.status))
   const moving = new Map(
     items.filter((info) => isInProgress(info.status)).map((info) => [info.id, info]),
@@ -25,13 +35,18 @@ function applyStatuses(queryClient: QueryClient, items: CvStatusInfo[]): void {
     )
   }
   queryClient.setQueryData(cvQueries.list().queryKey, (cvs) =>
-    cvs?.map((cv) => {
-      const info = moving.get(cv.id)
-      return info && isNewer(info, cv)
-        ? { ...cv, status: info.status, updatedAt: info.updatedAt }
-        : cv
-    }),
+    cvs
+      ?.filter((cv) => !gone.has(cv.id))
+      .map((cv) => {
+        const info = moving.get(cv.id)
+        return info && isNewer(info, cv)
+          ? { ...cv, status: info.status, updatedAt: info.updatedAt }
+          : cv
+      }),
   )
+  for (const id of gone) {
+    void queryClient.resetQueries({ queryKey: cvQueries.detail(id).queryKey })
+  }
 
   for (const info of left) {
     void queryClient.invalidateQueries({ queryKey: cvQueries.detail(info.id).queryKey })
@@ -51,7 +66,7 @@ export function useCvStatusPolling(ids: readonly string[]): void {
     queryKey: cvQueries.statuses(sorted).queryKey,
     queryFn: async () => {
       const items = await fetchStatuses(sorted)
-      applyStatuses(queryClient, items)
+      applyStatuses(queryClient, sorted, items)
       return items
     },
     enabled: sorted.length > 0,

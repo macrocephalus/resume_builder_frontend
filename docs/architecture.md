@@ -241,7 +241,10 @@ Context or a store.
   its rows), and with none it stops. While a CV stays in progress, each answer is patched into its
   cached detail and list row (status, stage, attempt, queue position), so the panel and the pill
   move without a refetch. When a CV leaves that group, its detail and the list are invalidated and
-  refetched. The full CV is never polled.
+  refetched. The full CV is never polled. The statuses request leaves out ids it no longer knows,
+  so an id asked for and missing from the answer is a CV deleted in another tab or device: it
+  leaves the cached list, and its detail is reset, so a screen showing it refetches and gets Not
+  found. Either way its polling stops.
 - **Limits on New CV:** `usageQuery()` is read with a plain `useQuery`, not one a loader waits for:
   the limits are a hint before a `429`, and the form works without them (a failure shows Retry
   next to Create CV). The form selects only whether a new CV can start; `UsageNote` shows the
