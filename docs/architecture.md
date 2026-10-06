@@ -312,7 +312,8 @@ Context or a store.
 - **Save** sends the version, the title if it changed, and the draft with empty items dropped. On
   success the cache gets the returned CV and the form remounts. A `409 VERSION_CONFLICT` shows the
   conflict notice with "Reload latest"; the save bar then offers no Save, which could only
-  conflict again.
+  conflict again. A `413 INPUT_TOO_LARGE` (a draft over the API's body limit) asks to shorten the
+  longest texts.
 - **Save before action.** Answer, skip and download save a dirty form first; a failed save stops
   the action. Answer, skip and download mutations live in `DraftView`, above the form's key, like
   the save: a save before them, or their own answer, brings a new version that remounts the form,

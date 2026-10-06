@@ -223,6 +223,34 @@ describe('Draft editor', () => {
     expect(await screen.findByText('Saved ✓')).toBeVisible()
   })
 
+  test('a CV too large to save says what to do', async () => {
+    const { user } = await openEditor()
+    server.use(
+      http.patch(
+        '/api/cvs/:id',
+        () =>
+          HttpResponse.json(
+            {
+              error: {
+                code: 'INPUT_TOO_LARGE',
+                message: 'The request body is too large.',
+                details: {},
+              },
+            },
+            { status: 413 },
+          ),
+        { once: true },
+      ),
+    )
+
+    await user.type(screen.getByLabelText('About you'), ' More.')
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Not saved: the CV is too large to save. Shorten its longest texts, then save again.',
+    )
+  })
+
   test('a save from a stale tab shows the conflict and reloads the latest version', async () => {
     const { cv, user } = await openEditor()
     saveInAnotherTab(cv.id)

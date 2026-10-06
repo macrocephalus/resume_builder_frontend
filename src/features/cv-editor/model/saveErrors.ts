@@ -19,6 +19,9 @@ export function saveErrorText(error: unknown): string {
         return 'Not saved: this CV changed in another tab.'
       case 'INVALID_STATE':
         return 'Not saved: this CV cannot be edited right now. Reload the page.'
+      // Only a draft far past what a CV needs is over the API's body limit.
+      case 'INPUT_TOO_LARGE':
+        return 'Not saved: the CV is too large to save. Shorten its longest texts, then save again.'
     }
   }
   return `Not saved. ${errorText(error)}`
