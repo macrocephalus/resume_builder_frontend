@@ -19,6 +19,8 @@ export type MockDb = {
   cvs: MockCv[]
   /** Times generations started in, by user id; the hourly limit counts them. */
   generations: Record<string, number[]>
+  /** Times questions were answered in, by user id; the hourly limit counts them. */
+  answers: Record<string, number[]>
 }
 
 /** How a fake generation ends (`mocks/worker.ts`). */
@@ -47,6 +49,7 @@ const emptyDb = (): MockDb => ({
   failedLogins: {},
   cvs: [],
   generations: {},
+  answers: {},
 })
 
 export function readDb(): MockDb {

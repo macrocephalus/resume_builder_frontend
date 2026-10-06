@@ -22,7 +22,7 @@ import { runWorker, scenarioFor } from '@/mocks/worker'
 
 /** The limits of docs/api.md: CVs in progress at once, generations per hour. */
 export const GENERATION_LIMITS = { active: 2, perHour: 10 }
-const HOUR = 60 * 60 * 1000
+export const HOUR = 60 * 60 * 1000
 
 const notFound = () => errorResponse(404, 'NOT_FOUND', 'This CV does not exist.')
 
@@ -53,17 +53,24 @@ function currentDb(): MockDb {
 const ownEntries = (db: MockDb, userId: string): MockCv[] =>
   db.cvs.filter((entry) => entry.ownerId === userId)
 
+/** The user's generations started within the last hour. */
+export const recentGenerations = (db: MockDb, userId: string, now: number) =>
+  (db.generations[userId] ?? []).filter((at) => now - at < HOUR)
+
+/** How many of the user's CVs are in progress. */
+export const activeCount = (db: MockDb, userId: string) =>
+  ownEntries(db, userId).filter((entry) => isInProgress(entry.cv.status)).length
+
 const byNewest = (a: Cv, b: Cv) => b.updatedAt.localeCompare(a.updatedAt)
 
 /** Starting a generation (create or retry) counts toward both limits; `null` when it may start. */
 function limitResponse(db: MockDb, userId: string, now: number) {
-  const active = ownEntries(db, userId).filter((entry) => isInProgress(entry.cv.status)).length
-  if (active >= GENERATION_LIMITS.active) {
+  if (activeCount(db, userId) >= GENERATION_LIMITS.active) {
     return errorResponse(429, 'TOO_MANY_ACTIVE', 'Two CVs are already being generated.', {
       details: { limit: GENERATION_LIMITS.active },
     })
   }
-  const recent = (db.generations[userId] ?? []).filter((at) => now - at < HOUR)
+  const recent = recentGenerations(db, userId, now)
   if (recent.length >= GENERATION_LIMITS.perHour) {
     const oldest = Math.min(...recent)
     return errorResponse(429, 'RATE_LIMITED', 'The hourly generation limit is reached.', {
@@ -75,7 +82,7 @@ function limitResponse(db: MockDb, userId: string, now: number) {
 }
 
 function countGeneration(db: MockDb, userId: string, now: number): void {
-  db.generations[userId] = [...(db.generations[userId] ?? []).filter((at) => now - at < HOUR), now]
+  db.generations[userId] = [...recentGenerations(db, userId, now), now]
 }
 
 /** The title as a file name the header can carry: ASCII letters, digits, spaces, `-` and `_`. */
