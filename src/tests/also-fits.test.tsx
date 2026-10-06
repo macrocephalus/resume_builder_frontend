@@ -80,13 +80,13 @@ describe('Also fits', () => {
     seedCv(owner, 'generating')
     seedCv(owner, 'queued')
     renderApp(`/cvs/new?fromCvId=${parent.id}&role=CTO`)
-    const user = userEvent.setup()
 
-    await user.click(await screen.findByRole('button', { name: 'Create CV' }))
-
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      'You already have 2 CVs being generated. Try again when one of them is done.',
-    )
+    expect(
+      await screen.findByText(
+        'You already have 2 CVs being generated. Try again when one of them is done.',
+      ),
+    ).toBeVisible()
+    expect(create()).toBeDisabled()
   })
 
   test('says so when the CV it starts from was deleted meanwhile', async () => {

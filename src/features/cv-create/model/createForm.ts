@@ -54,6 +54,10 @@ export function readPrefill(params: URLSearchParams): Prefill {
   }
 }
 
+/** The create was refused for a limit: two CVs in progress, or the hourly count. */
+export const isLimitError = (error: unknown) =>
+  error instanceof ApiError && (error.code === 'TOO_MANY_ACTIVE' || error.code === 'RATE_LIMITED')
+
 /** Where a failed create is shown: next to a field, or above the submit button. */
 export type CreateFailure = { field: CreateField | null; message: string }
 

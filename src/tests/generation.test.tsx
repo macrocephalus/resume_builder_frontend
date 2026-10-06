@@ -1,5 +1,5 @@
 import { hasDraft, type CvStatus } from '@cv/shared'
-import { act, screen, within } from '@testing-library/react'
+import { act, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { seedCv } from '@/mocks/fixtures/cv'
@@ -75,9 +75,11 @@ describe('New CV', () => {
 
   test('says when two CVs are already being generated', async () => {
     const ann = signedIn()
+    renderApp('/cvs/new')
+    // Started in another tab after the form showed the limits.
+    await screen.findByText('0 of 10 generations used this hour')
     seedCv(ann, 'queued')
     seedCv(ann, 'generating')
-    renderApp('/cvs/new')
 
     await createCv('Senior Backend Engineer')
 
@@ -85,11 +87,17 @@ describe('New CV', () => {
       'You already have 2 CVs being generated. Try again when one of them is done.',
     )
     expect(window.location.pathname).toBe('/cvs/new')
+    // The limits, asked again, now hold Create CV back, without saying it a second time.
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Create CV' })).toBeDisabled())
+    expect(screen.getAllByText(/CVs being generated/)).toHaveLength(1)
   })
 
   test('says when the hourly limit lets the user try again', async () => {
-    exhaustHourlyLimit(signedIn().id)
+    const ann = signedIn()
     renderApp('/cvs/new')
+    // Used up in another tab after the form showed the limits.
+    await screen.findByText('0 of 10 generations used this hour')
+    exhaustHourlyLimit(ann.id)
 
     await createCv('Senior Backend Engineer')
 

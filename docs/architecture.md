@@ -61,7 +61,7 @@ src/
       components/              CvListScreen, the row, the empty state
     cv-create/
       components/              CvCreateScreen, the form (plain or from another CV), the PDF upload
-      api/                     useCreateCv, useIngestPdf, parentCvQuery, usage query
+      api/                     useCreateCv, useIngestPdf, parentCvQuery, usageQuery
       model/                   form schema, the ?fromCvId=&role= prefill, error-code texts,
                                session-storage autosave
     cv-editor/                 the CV screen (see the glossary)
@@ -242,6 +242,12 @@ Context or a store.
   cached detail and list row (status, stage, attempt, queue position), so the panel and the pill
   move without a refetch. When a CV leaves that group, its detail and the list are invalidated and
   refetched. The full CV is never polled.
+- **Limits on New CV:** `usageQuery()` is read with a plain `useQuery`, not one a loader waits for:
+  the limits are a hint before a `429`, and the form works without them (a failure shows Retry
+  next to Create CV). The form selects only whether a new CV can start; `UsageNote` shows the
+  rest. While a new CV cannot start, Create CV is disabled with the reason and the query
+  refetches every 15 s; a create, or a `429` for one, invalidates it. After a `429` the form's
+  own error says it, so the note does not say it again.
 - **Deleting the CV on screen:** `useDeleteCv({ onDeleted })` calls `onDeleted` (navigate to My
   CVs) before it drops the CV from the cache, so the screen never refetches a CV that is gone.
 - **Statuses are mapped, never derived.** `statusView.ts` turns the status string into a label, a

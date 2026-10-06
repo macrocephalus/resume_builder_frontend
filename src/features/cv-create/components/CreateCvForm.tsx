@@ -7,6 +7,7 @@ import {
   type Cv,
 } from '@cv/shared'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useQuery } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router'
 import { paths } from '@/shared/config/paths'
@@ -18,14 +19,18 @@ import { Panel } from '@/shared/ui/Panel'
 import { Select } from '@/shared/ui/Select'
 import { Textarea } from '@/shared/ui/Textarea'
 import { useCreateCv } from '@/features/cv-create/api/useCreateCv'
+import { usageQuery } from '@/features/cv-create/api/usageQuery'
 import { PdfUpload } from '@/features/cv-create/components/PdfUpload'
 import { SourceCounter } from '@/features/cv-create/components/SourceCounter'
+import { UsageNote } from '@/features/cv-create/components/UsageNote'
 import {
   createFailure,
   createIssueText,
+  isLimitError,
   sourceTextLimits,
   type CreateFormInput,
 } from '@/features/cv-create/model/createForm'
+import { blockedText } from '@/features/cv-create/model/usage'
 
 type CreateCvFormProps = {
   /** The target role to start with. */
@@ -37,10 +42,16 @@ type CreateCvFormProps = {
 /**
  * The New CV form: the role, a note on it, the CV language and the experience text. Made from
  * another CV, it has no experience text: the new CV reuses that CV's source and facts.
+ *
+ * Create CV waits while the limits say a new CV cannot start.
  */
 export function CreateCvForm({ role, parent }: CreateCvFormProps) {
   const navigate = useNavigate()
   const create = useCreateCv()
+  const { data: blocked = false } = useQuery({
+    ...usageQuery(),
+    select: (usage) => blockedText(usage) !== null,
+  })
   const {
     register,
     control,
@@ -51,15 +62,24 @@ export function CreateCvForm({ role, parent }: CreateCvFormProps) {
     formState: { errors },
   } = useForm<CreateFormInput, unknown, CreateCvBody>({
     resolver: zodResolver(createCvBodySchema, { error: createIssueText }),
-    defaultValues: {
-      targetRole: role,
-      roleContext: '',
-      language: parent?.language ?? DEFAULT_CV_LANGUAGE,
-      // The contract takes a text or a parent CV, never both.
-      ...(parent ? { fromCvId: parent.id } : { sourceText: '' }),
-      sourceType: 'text',
-      sourceFilename: null,
-    },
+    defaultValues: parent
+      ? {
+          targetRole: role,
+          roleContext: '',
+          language: parent.language,
+          // The contract takes a text or a parent CV, never both.
+          fromCvId: parent.id,
+          sourceType: 'text',
+          sourceFilename: null,
+        }
+      : {
+          roleContext: '',
+          language: DEFAULT_CV_LANGUAGE,
+          sourceText: '',
+          sourceType: 'text',
+          sourceFilename: null,
+          targetRole: role,
+        },
   })
 
   const submit = handleSubmit(({ roleContext, sourceType, sourceFilename, ...body }) =>
@@ -76,7 +96,11 @@ export function CreateCvForm({ role, parent }: CreateCvFormProps) {
           const failure = createFailure(error)
           if (failure.field)
             setError(failure.field, { message: failure.message }, { shouldFocus: true })
-          else setError('root', { message: failure.message })
+          else
+            setError('root', {
+              type: isLimitError(error) ? 'limit' : 'server',
+              message: failure.message,
+            })
         },
       },
     ),
@@ -145,8 +169,9 @@ export function CreateCvForm({ role, parent }: CreateCvFormProps) {
             {errors.root.message}
           </Notice>
         ) : null}
-        <div>
-          <Button type="submit" pending={create.isPending}>
+        <div className="flex flex-col items-start gap-2">
+          <UsageNote limitShown={errors.root?.type === 'limit'} />
+          <Button type="submit" pending={create.isPending} disabled={blocked}>
             Create CV
           </Button>
         </div>
