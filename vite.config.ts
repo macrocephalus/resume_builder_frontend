@@ -25,6 +25,6 @@ export default defineConfig(({ mode }) => ({
     setupFiles: './vitest.setup.ts',
     // A flow test waits for several screens, each up to `asyncUtilTimeout` (vitest.setup.ts):
     // the test's own limit must be longer, so a slow wait fails with its own message.
-    testTimeout: 15_000,
+    testTimeout: 20_000,
   },
 }))

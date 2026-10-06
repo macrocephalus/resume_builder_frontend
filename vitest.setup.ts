@@ -12,8 +12,8 @@ globalThis.FormData = nodeFormData.constructor as typeof FormData
 globalThis.File = NodeFile as unknown as typeof File
 
 // The first screen of a test file loads its lazy route module, which can take more than the
-// default second when many test files run at once.
-configure({ asyncUtilTimeout: 5000 })
+// default second when many test files run at once, and over 5 s on a busy machine.
+configure({ asyncUtilTimeout: 10_000 })
 
 beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
 

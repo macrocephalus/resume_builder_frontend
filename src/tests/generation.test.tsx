@@ -252,9 +252,7 @@ describe('generation', () => {
     for (const title of ['First', 'Second']) {
       expect(within(screen.getByRole('listitem', { name: title })).getByText('Ready')).toBeVisible()
     }
-    // Two whole generations, about 27 s of fake time and nine polls: more than the default 5 s
-    // of real time when every test file runs at once.
-  }, 15_000)
+  })
 
   test('My CVs follows a CV in progress without a reload', async () => {
     const ann = signedIn()

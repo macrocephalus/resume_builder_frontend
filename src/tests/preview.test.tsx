@@ -134,7 +134,8 @@ describe('Panels', () => {
       'true',
     )
     await user.click(within(tabs).getByRole('button', { name: 'Preview' }))
-    expect(window.location.search).toBe('?tab=preview')
+    // The switch is a navigation, which the router finishes after the click returns.
+    await waitFor(() => expect(window.location.search).toBe('?tab=preview'))
     expect(within(tabs).getByRole('button', { name: 'Preview' })).toHaveAttribute(
       'aria-pressed',
       'true',
@@ -149,7 +150,7 @@ describe('Panels', () => {
     ).toHaveAttribute('aria-pressed', 'true')
 
     await user.click(screen.getByRole('button', { name: 'Edit' }))
-    expect(window.location.search).toBe('')
+    await waitFor(() => expect(window.location.search).toBe(''))
   })
 
   test('switching panels with unsaved edits keeps them and does not ask', async () => {
