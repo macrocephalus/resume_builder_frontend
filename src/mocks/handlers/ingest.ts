@@ -1,14 +1,24 @@
 import { API_LIMITS } from '@cv/shared'
 import { http, HttpResponse } from 'msw'
-import { extractedCvText } from '@/mocks/fixtures/source'
+import { extractedCvText, longCvText, shortCvText } from '@/mocks/fixtures/source'
 import { sessionUser, unauthorized } from '@/mocks/handlers/auth'
 import { errorResponse } from '@/mocks/respond'
 
 const PDF_MAGIC = '%PDF'
 
+/** The text a PDF "holds", picked by a word in its name, and how many pages it has. */
+function extractFrom(filename: string): { text: string; pages: number } {
+  const name = filename.toLowerCase()
+  if (name.includes('long')) return { text: longCvText, pages: 9 }
+  if (name.includes('short')) return { text: shortCvText, pages: 1 }
+  return { text: extractedCvText, pages: 2 }
+}
+
 /**
- * Returns the fixture text for any PDF, but checks the file for real: the `%PDF` magic bytes
- * (`415`) and the size (`413`). A filename with "scan" in it stands for a PDF without text (`422`).
+ * Returns a fixture text for any PDF, but checks the file for real: the `%PDF` magic bytes
+ * (`415`) and the size (`413`). A word in the filename picks the case: "scan" is a PDF without
+ * text (`422`); "long" one with more text than a CV can start from, "short" one with less, both
+ * read as the API reads them, since it checks only its own minimum of 50 characters.
  */
 export const ingestHandlers = [
   http.post('/api/ingest/pdf', async ({ request }) => {
@@ -28,11 +38,7 @@ export const ingestHandlers = [
     if (file.name.toLowerCase().includes('scan')) {
       return errorResponse(422, 'PDF_UNREADABLE', 'The PDF has no text layer.')
     }
-    return HttpResponse.json({
-      text: extractedCvText,
-      pages: 2,
-      chars: extractedCvText.length,
-      filename: file.name,
-    })
+    const { text, pages } = extractFrom(file.name)
+    return HttpResponse.json({ text, pages, chars: text.length, filename: file.name })
   }),
 ]

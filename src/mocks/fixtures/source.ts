@@ -15,3 +15,12 @@ Education: BSc in Computer Science, Igor Sikorsky Kyiv Polytechnic Institute, 20
 Certificate: AWS Certified Developer – Associate, 2022
 Skills: Node.js, TypeScript, PostgreSQL, Redis, Docker
 Languages: Ukrainian (native), English`
+
+/** A dense PDF: the same CV written out over and over, past the 20 000 characters of a source. */
+export const longCvText = Array.from(
+  { length: 30 },
+  (_, page) => `Page ${page + 1}\n${extractedCvText}`,
+).join('\n\n')
+
+/** A PDF with little text in it: over the 50 characters the upload needs, under the form's 80. */
+export const shortCvText = 'Olena Hnatiuk\nBackend engineer, Kyiv\nolena@example.com'

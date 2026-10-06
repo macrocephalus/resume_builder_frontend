@@ -52,6 +52,33 @@ describe('PDF upload', () => {
     expect(body).toMatchObject({ sourceType: 'pdf', sourceFilename: 'olena-cv.pdf' })
   })
 
+  test('says what to do when the text of a PDF is too long for a CV', async () => {
+    const { user, upload } = await openForm()
+
+    await user.upload(upload, pdf('long-cv.pdf'))
+
+    expect(
+      await screen.findByText(
+        /more than the 20 000 a CV can start from\. Shorten the text below to fit: keep your recent roles and cut what is old or repeated\./,
+      ),
+    ).toBeVisible()
+    expect(screen.getByLabelText('Your experience')).toHaveAccessibleDescription(
+      expect.stringContaining('Use at most 20 000 characters'),
+    )
+  })
+
+  test('says what to do when a PDF has too little text for a CV', async () => {
+    const { user, upload } = await openForm()
+
+    await user.upload(upload, pdf('short-cv.pdf'))
+
+    expect(
+      await screen.findByText(
+        /^Extracted only \d+ characters from 1 page of short-cv\.pdf, fewer than the 80 a CV needs\. Add more below: roles, companies, dates, what you did\.$/,
+      ),
+    ).toBeVisible()
+  })
+
   test('asks before it replaces text the user already typed', async () => {
     const { user, upload } = await openForm()
     const text = screen.getByLabelText('Your experience')

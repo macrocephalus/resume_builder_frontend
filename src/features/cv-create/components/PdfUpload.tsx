@@ -5,8 +5,9 @@ import { FileButton } from '@/shared/ui/FileButton'
 import { MetaLine } from '@/shared/ui/MetaLine'
 import { Notice } from '@/shared/ui/Notice'
 import { useIngestPdf } from '@/features/cv-create/api/useIngestPdf'
-import { ingestErrorText, pdfLimits } from '@/features/cv-create/model/ingestErrors'
 import { formatCount } from '@/features/cv-create/model/createForm'
+import { ingestErrorText, pdfLimits } from '@/features/cv-create/model/ingestErrors'
+import { extractedText } from '@/features/cv-create/model/pdfText'
 
 type PdfUploadProps = {
   /** Whether the text area already holds text, which an upload must not replace unasked. */
@@ -18,12 +19,11 @@ type PdfUploadProps = {
 /** What happened to the last extracted text. */
 type Step = 'idle' | 'confirm' | 'used' | 'kept'
 
-const pages = (count: number) => (count === 1 ? '1 page' : `${count} pages`)
-
 export function PdfUpload({ hasText, onUse }: PdfUploadProps) {
   const ingest = useIngestPdf()
   const [step, setStep] = useState<Step>('idle')
   const pdf = ingest.data
+  const note = pdf ? extractedText(pdf) : null
 
   const upload = (file: File) => {
     setStep('idle')
@@ -77,10 +77,9 @@ export function PdfUpload({ hasText, onUse }: PdfUploadProps) {
           Replace the text below with the {formatCount(pdf.chars)} characters from {pdf.filename}?
         </Notice>
       ) : null}
-      {pdf && step === 'used' ? (
-        <Notice tone="accent" aria-live="polite">
-          Extracted {formatCount(pdf.chars)} characters from {pages(pdf.pages)} of {pdf.filename}.
-          Check them below; the AI reads exactly this text.
+      {note && step === 'used' ? (
+        <Notice tone={note.fits ? 'accent' : 'wait'} aria-live="polite">
+          {note.text}
         </Notice>
       ) : null}
     </div>

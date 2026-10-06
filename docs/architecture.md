@@ -63,7 +63,7 @@ src/
       components/              CvCreateScreen, the form (plain or from another CV), the PDF upload
       api/                     useCreateCv, useIngestPdf, parentCvQuery, usageQuery
       model/                   form schema, the ?fromCvId=&role= prefill, error-code texts,
-                               session-storage autosave
+                               the note on an extracted PDF text, session-storage autosave
     cv-editor/                 the CV screen (see the glossary)
       components/
         CvScreen.tsx           picks the panel by status group
@@ -371,6 +371,8 @@ Why it is built this way: [ADR 0003](adr/0003-mock-mode-outside-the-layers.md).
   loses nothing. The worker has no timers: every handler first moves each CV to where the clock
   says it is (`runWorker`). A generation takes about 14 s; a keyword in the target role picks
   the outcome (`fail`, `retry`, `ready`, otherwise questions), and a retried `fail` CV succeeds.
+  A word in an uploaded PDF's name picks what it holds: `scan` no text (`422`), `long` more text
+  than a CV can start from, `short` less; any other PDF gives the sample CV text.
 - **Honesty.** Every mock response goes through the same contract schemas in the API client, so a
   mock that drifts from the contract fails loudly.
 
