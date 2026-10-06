@@ -1,6 +1,7 @@
 import { errorResponseSchema } from '@cv/shared'
 import type { z } from 'zod'
 import { ApiError } from '@/shared/api/ApiError'
+import { fileNameFrom } from '@/shared/api/fileName'
 
 type Method = 'GET' | 'POST' | 'PATCH' | 'DELETE'
 
@@ -70,4 +71,21 @@ export async function apiRequest<T>(
 /** For endpoints that answer `204 No Content`. */
 export async function apiSend(path: string, options: RequestOptions = {}): Promise<void> {
   await send(path, options)
+}
+
+/**
+ * For endpoints that answer with a file: its contents and the name from `Content-Disposition`
+ * (or `fallbackName`). A body of another media type is a `BAD_RESPONSE`, never a file.
+ */
+export async function apiFile(
+  path: string,
+  { type, fallbackName }: { type: string; fallbackName: string },
+): Promise<{ blob: Blob; name: string }> {
+  const response = await send(path, {})
+  const contentType = response.headers.get('Content-Type') ?? ''
+  const blob = contentType.startsWith(type) ? await response.blob().catch(() => null) : null
+  if (!blob) {
+    throw new ApiError(response.status, 'BAD_RESPONSE', 'The server sent an unexpected response.')
+  }
+  return { blob, name: fileNameFrom(response.headers.get('Content-Disposition'), fallbackName) }
 }
