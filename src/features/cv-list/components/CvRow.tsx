@@ -12,6 +12,7 @@ import { useRetryCv } from '@/entities/cv/api/useRetryCv'
 import { StatusPill } from '@/entities/cv/components/StatusPill'
 import { matchShortText } from '@/entities/cv/model/matchText'
 import { statusView } from '@/entities/cv/model/statusView'
+import { retryErrorText } from '@/entities/cv/model/usage'
 
 const questions = (count: number) => (count === 1 ? '1 open question' : `${count} open questions`)
 
@@ -83,7 +84,7 @@ export function CvRow({ cv }: { cv: CvSummary }) {
       ) : null}
       {retry.isError ? (
         <Notice tone="bad" role="alert" className="md:col-span-2">
-          Could not retry this CV. {errorText(retry.error)}
+          Could not retry this CV. {retryErrorText(retry.error)}
         </Notice>
       ) : null}
     </li>

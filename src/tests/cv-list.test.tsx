@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { describe, expect, test } from 'vitest'
 import { seedCv } from '@/mocks/fixtures/cv'
+import { exhaustHourlyLimit } from '@/mocks/handlers/cvs'
 import { server } from '@/mocks/server'
 import { expireSession, seedUser } from '@/mocks/store'
 import { renderApp } from '@/tests/renderApp'
@@ -147,6 +148,38 @@ describe('My CVs', () => {
     expect(
       within(row('Olena — Backend')).getByRole('link', { name: 'Watch progress' }),
     ).toBeVisible()
+  })
+
+  test('a Retry over the hourly limit says when it can run', async () => {
+    const ann = signedIn()
+    seedCv(ann, 'failed', { title: 'Olena — Backend' })
+    exhaustHourlyLimit(ann.id)
+    renderApp('/')
+    await screen.findByRole('heading', { name: 'Olena — Backend' })
+
+    await userEvent
+      .setup()
+      .click(within(row('Olena — Backend')).getByRole('button', { name: 'Retry' }))
+
+    expect(await within(row('Olena — Backend')).findByRole('alert')).toHaveTextContent(
+      'Could not retry this CV. You have used all 10 generations for this hour. Try again in 60 minutes.',
+    )
+  })
+
+  test('a Retry with four CVs in progress says to wait for one', async () => {
+    const ann = signedIn()
+    seedCv(ann, 'failed', { title: 'Olena — Backend' })
+    for (let i = 0; i < 4; i += 1) seedCv(ann, 'generating')
+    renderApp('/')
+    await screen.findByRole('heading', { name: 'Olena — Backend' })
+
+    await userEvent
+      .setup()
+      .click(within(row('Olena — Backend')).getByRole('button', { name: 'Retry' }))
+
+    expect(await within(row('Olena — Backend')).findByRole('alert')).toHaveTextContent(
+      'Could not retry this CV. You already have 4 CVs being generated. Try again when one of them is done.',
+    )
   })
 
   test('a list that fails to load shows the error with Retry', async () => {

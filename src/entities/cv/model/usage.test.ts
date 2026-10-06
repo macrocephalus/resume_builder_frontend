@@ -1,6 +1,7 @@
 import type { Usage } from '@cv/shared'
 import { describe, expect, test } from 'vitest'
-import { blockedText, generationsText } from '@/entities/cv/model/usage'
+import { ApiError } from '@/shared/api/ApiError'
+import { blockedText, generationsText, limitErrorText } from '@/entities/cv/model/usage'
 
 const at = '2026-10-06T14:05:00.000Z'
 const usage = (generations: number, active: number): Usage => ({
@@ -27,5 +28,16 @@ describe('usage', () => {
     expect(blockedText(usage(3, 4), time)).toBe(
       'You already have 4 CVs being generated. Try again when one of them is done.',
     )
+  })
+
+  test('words a refusal for a limit, with the wait the server gave, and nothing else', () => {
+    expect(
+      limitErrorText(new ApiError(429, 'RATE_LIMITED', 'Slow down', { limit: 10 }, 1500)),
+    ).toBe('You have used all 10 generations for this hour. Try again in 25 minutes.')
+    expect(limitErrorText(new ApiError(429, 'TOO_MANY_ACTIVE', 'Wait', { limit: 4 }))).toBe(
+      'You already have 4 CVs being generated. Try again when one of them is done.',
+    )
+    expect(limitErrorText(new ApiError(409, 'INVALID_STATE', 'No'))).toBeNull()
+    expect(limitErrorText(new Error('boom'))).toBeNull()
   })
 })

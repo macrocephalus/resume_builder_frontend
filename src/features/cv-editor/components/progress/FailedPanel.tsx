@@ -1,9 +1,9 @@
 import type { Cv } from '@cv/shared'
-import { errorText } from '@/shared/api/errorText'
 import { Button } from '@/shared/ui/Button'
 import { Notice } from '@/shared/ui/Notice'
 import { Panel } from '@/shared/ui/Panel'
 import { useRetryCv } from '@/entities/cv/api/useRetryCv'
+import { retryErrorText } from '@/entities/cv/model/usage'
 import { CvHeader } from '@/features/cv-editor/components/CvHeader'
 import { DeleteCv } from '@/features/cv-editor/components/DeleteCv'
 
@@ -24,7 +24,7 @@ export function FailedPanel({ cv }: { cv: Cv }) {
       </div>
       {retry.isError ? (
         <Notice tone="bad" role="alert">
-          Could not retry. {errorText(retry.error)}
+          Could not retry. {retryErrorText(retry.error)}
         </Notice>
       ) : null}
     </Panel>

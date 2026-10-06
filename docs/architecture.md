@@ -87,7 +87,7 @@ src/
       model/
         statusView.ts          status -> label, tone, allowed actions
         matchText.ts           "Covers 7 of 10 requirements", "Match 7/10"
-        usage.ts               the limits in words
+        usage.ts               the limits, and a refusal for one, in words
       components/
         StatusPill.tsx
         MatchBar.tsx
@@ -251,8 +251,9 @@ Context or a store.
   the limits are a hint before a `429`, and the form works without them (a failure shows Retry
   next to Create CV). The form selects only whether a new CV can start; `UsageNote` shows the
   rest. While a new CV cannot start, Create CV is disabled with the reason and the query
-  refetches every 15 s; a create, or a `429` for one, invalidates it. After a `429` the form's
-  own error says it, so the note does not say it again.
+  refetches every 15 s; a create, or a `429` for one, invalidates it. After a `429` the form's own error says it, so
+  the note does not say it again. A `429` for a limit reads the same on New CV and on Retry
+  (`limitErrorText`); the hourly one says when to try again, from `Retry-After`.
 - **Deleting the CV on screen:** `useDeleteCv({ onDeleted })` calls `onDeleted` (navigate to My
   CVs) before it drops the CV from the cache, so the screen never refetches a CV that is gone.
 - **Statuses are mapped, never derived.** `statusView.ts` turns the status string into a label, a

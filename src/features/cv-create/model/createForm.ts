@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { ApiError } from '@/shared/api/ApiError'
 import { errorText } from '@/shared/api/errorText'
 import { newCvParams } from '@/shared/config/paths'
-import { formatWait } from '@/shared/lib/format'
+import { limitErrorText } from '@/entities/cv/model/usage'
 
 /** 20000 as "20 000". */
 export const formatCount = (value: number) => value.toLocaleString('en-US').replaceAll(',', ' ')
@@ -55,30 +55,16 @@ export function readPrefill(params: URLSearchParams): Prefill {
 }
 
 /** The create was refused for a limit: the CVs in progress, or the hourly count. */
-export const isLimitError = (error: unknown) =>
-  error instanceof ApiError && (error.code === 'TOO_MANY_ACTIVE' || error.code === 'RATE_LIMITED')
+export const isLimitError = (error: unknown) => limitErrorText(error) !== null
 
 /** Where a failed create is shown: next to a field, or above the submit button. */
 export type CreateFailure = { field: CreateField | null; message: string }
 
-function limit(error: ApiError, fallback: number): number {
-  const value = error.details.limit
-  return typeof value === 'number' ? value : fallback
-}
-
 export function createFailure(error: unknown): CreateFailure {
   if (!(error instanceof ApiError)) return { field: null, message: errorText(error) }
+  const limit = limitErrorText(error)
+  if (limit) return { field: null, message: limit }
   switch (error.code) {
-    case 'TOO_MANY_ACTIVE':
-      return {
-        field: null,
-        message: `You already have ${limit(error, 4)} CVs being generated. Try again when one of them is done.`,
-      }
-    case 'RATE_LIMITED':
-      return {
-        field: null,
-        message: `You have used all ${limit(error, 10)} generations for this hour. Try again in ${formatWait(error.retryAfter)}.`,
-      }
     // Only a create from another CV names one: it was deleted, or its generation is not done.
     case 'NOT_FOUND':
       return {
