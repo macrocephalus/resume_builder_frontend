@@ -19,8 +19,9 @@ import { Notice } from '@/shared/ui/Notice'
 import { Panel } from '@/shared/ui/Panel'
 import { Select } from '@/shared/ui/Select'
 import { Textarea } from '@/shared/ui/Textarea'
+import { usageQuery } from '@/entities/cv/api/usageQuery'
+import { blockedText } from '@/entities/cv/model/usage'
 import { useCreateCv } from '@/features/cv-create/api/useCreateCv'
-import { usageQuery } from '@/features/cv-create/api/usageQuery'
 import { PdfUpload } from '@/features/cv-create/components/PdfUpload'
 import { SourceCounter } from '@/features/cv-create/components/SourceCounter'
 import { UsageNote } from '@/features/cv-create/components/UsageNote'
@@ -33,7 +34,6 @@ import {
   sourceTextLimits,
   type CreateFormInput,
 } from '@/features/cv-create/model/createForm'
-import { blockedText } from '@/features/cv-create/model/usage'
 
 type CreateCvFormProps = {
   /** The target role to start with. */

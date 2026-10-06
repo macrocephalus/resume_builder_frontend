@@ -2,7 +2,7 @@ import { usageResponseSchema } from '@cv/shared'
 import { queryOptions } from '@tanstack/react-query'
 import { apiRequest } from '@/shared/api/client'
 import { apiPaths } from '@/shared/config/paths'
-import { blockedText } from '@/features/cv-create/model/usage'
+import { blockedText } from '@/entities/cv/model/usage'
 
 /** While a new CV cannot start, the limits are asked again this often, so the form unlocks. */
 const BLOCKED_REFETCH_MS = 15_000

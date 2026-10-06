@@ -1,6 +1,6 @@
 import type { Usage } from '@cv/shared'
 import { describe, expect, test } from 'vitest'
-import { blockedText, generationsText } from '@/features/cv-create/model/usage'
+import { blockedText, generationsText } from '@/entities/cv/model/usage'
 
 const at = '2026-10-06T14:05:00.000Z'
 const usage = (generations: number, active: number): Usage => ({

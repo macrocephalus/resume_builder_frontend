@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiRequest } from '@/shared/api/client'
 import { apiPaths } from '@/shared/config/paths'
 import { cvQueries } from '@/entities/cv/api/cvQueries'
-import { usageQuery } from '@/features/cv-create/api/usageQuery'
+import { usageQuery } from '@/entities/cv/api/usageQuery'
 import { clearSavedForm } from '@/features/cv-create/model/autosave'
 import type { CreateFormInput } from '@/features/cv-create/model/createForm'
 

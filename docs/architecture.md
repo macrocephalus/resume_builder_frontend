@@ -61,7 +61,7 @@ src/
       components/              CvListScreen, the row, the empty state
     cv-create/
       components/              CvCreateScreen, the form (plain or from another CV), the PDF upload
-      api/                     useCreateCv, useIngestPdf, parentCvQuery, usageQuery
+      api/                     useCreateCv, useIngestPdf, parentCvQuery
       model/                   form schema, the ?fromCvId=&role= prefill, error-code texts,
                                the note on an extracted PDF text, session-storage autosave
     cv-editor/                 the CV screen (see the glossary)
@@ -83,9 +83,11 @@ src/
         useCvStatusPolling.ts  polls statuses while a CV is in progress
         useDeleteCv.ts         used by the list and the CV screen
         useRetryCv.ts          used by the list and the CV screen
+        usageQuery.ts          the generation limits, for New CV
       model/
         statusView.ts          status -> label, tone, allowed actions
         matchText.ts           "Covers 7 of 10 requirements", "Match 7/10"
+        usage.ts               the limits in words
       components/
         StatusPill.tsx
         MatchBar.tsx

@@ -2,8 +2,8 @@ import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/shared/ui/Button'
 import { MetaLine } from '@/shared/ui/MetaLine'
 import { Notice } from '@/shared/ui/Notice'
-import { usageQuery } from '@/features/cv-create/api/usageQuery'
-import { blockedText, generationsText } from '@/features/cv-create/model/usage'
+import { usageQuery } from '@/entities/cv/api/usageQuery'
+import { blockedText, generationsText } from '@/entities/cv/model/usage'
 
 type UsageNoteProps = {
   /** A `429` for a limit is shown already: saying it twice would not help. */
