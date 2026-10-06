@@ -5,20 +5,20 @@ is told what is missing instead of being blocked.
 
 **Blocked by:** 07
 
-**Status:** ready-for-agent
+**Status:** done
 
 **Implements:** `.scratch/frontend-first/issues/10-pdf-download.md`
 
 **Spec:** [../spec.md](../spec.md)
 
-- [ ] Download button in the CV header, available only when the CV has a draft
-- [ ] With unsaved edits the button reads "Save & download" and saves first; a failed save (validation, version conflict) stops the download and shows the error
-- [ ] The file is fetched as a blob and handed to the browser with the filename from the response header (fallback `cv.pdf`); works in mobile Safari and Chrome
-- [ ] While the file is prepared the button shows a pending state; errors are shown next to the button with a way to retry
-- [ ] Open questions or missing required blocks do not block the download; a note lists what will be empty
-- [ ] Mock mode returns a static A4 PDF fixture and `409 INVALID_STATE` for a CV without a draft
-- [ ] Tests: dirty form saves before downloading; failed save stops the download; note about missing blocks
-- [ ] The look follows `frontend/docs/design.md`; screenshots at 390 px and 1280 px in mock mode are checked against the prototype and mentioned in the report
-- [ ] `pnpm typecheck && pnpm lint && pnpm build`, the format check and the tests pass
+- [x] Download button in the CV header, available only when the CV has a draft
+- [x] With unsaved edits the button reads "Save & download" and saves first; a failed save (validation, version conflict) stops the download and shows the error
+- [x] The file is fetched as a blob and handed to the browser with the filename from the response header (fallback `cv.pdf`); works in mobile Safari and Chrome
+- [x] While the file is prepared the button shows a pending state; errors are shown next to the button with a way to retry
+- [x] Open questions or missing required blocks do not block the download; a note lists what will be empty
+- [x] Mock mode returns a static A4 PDF fixture and `409 INVALID_STATE` for a CV without a draft
+- [x] Tests: dirty form saves before downloading; failed save stops the download; note about missing blocks
+- [x] The look follows `frontend/docs/design.md`; screenshots at 390 px and 1280 px in mock mode are checked against the prototype and mentioned in the report
+- [x] `pnpm typecheck && pnpm lint && pnpm build`, the format check and the tests pass
 
 **Architecture:** Structure follows `frontend/docs/architecture.md`: the button lives in `cv-editor/components/pdf/`, `useDownloadPdf` in `cv-editor/api/`.

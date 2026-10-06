@@ -90,13 +90,15 @@ src/
 
   shared/                      LAYER 4: no domain knowledge
     api/
-      client.ts                the one fetch wrapper
+      client.ts                the one fetch wrapper: JSON, 204 and file answers
       ApiError.ts              status, code, message, details, retryAfter
       errorText.ts             fallback text for an error; "cannot reach the server"
+      fileName.ts              the file name from a Content-Disposition header
     ui/                        primitives from the catalogue in design.md
     lib/
       cx.ts
       format.ts                dates and numbers through Intl
+      saveFile.ts              hands a blob to the browser's downloads
     config/
       paths.ts                 the only file that spells URLs
 
@@ -223,7 +225,10 @@ Context or a store.
 - **The API client** (`src/shared/api/client.ts`) is the one `fetch` wrapper. It sends same-origin
   credentials, parses every response with the contract schema passed by the caller, and throws
   `ApiError` on a non-2xx status, malformed JSON or a failed parse. It knows nothing about auth or
-  CVs.
+  CVs. `apiFile` fetches a file: a body of another media type than the caller expects is a
+  `BAD_RESPONSE`, and the name comes from `Content-Disposition` (`filename*` first) or a fallback.
+  `saveFile` (`src/shared/lib`) hands the blob to a temporary `<a download>` and revokes its
+  object URL a minute later, since Safari on iOS reads it after the click returns.
 - **Mutations** that return the full CV write it into the detail cache with `setQueryData` and do
   not refetch. A mutation's error is shown next to the control that started it; there are no
   toasts.
@@ -282,7 +287,9 @@ Context or a store.
     edits. And while a save runs the fields are disabled, since its answer remounts the form.
   - Inputs are uncontrolled (`register`); item lists use `useFieldArray`; new items get
     `crypto.randomUUID()`.
-  - Only the save bar reads dirty state (`useFormState`), so typing does not re-render the screen.
+  - Only the save bar and the download button read dirty state (`useFormState`), so typing does
+    not re-render the screen. The note on what the PDF will lack watches values on its own, like
+    the missing marks.
   - The preview and the match panel read values with `useWatch` and render from
     `useDeferredValue`.
 - **Save** sends the version, the title if it changed, and the draft with empty items dropped. On
@@ -290,11 +297,12 @@ Context or a store.
   conflict notice with "Reload latest"; the save bar then offers no Save, which could only
   conflict again.
 - **Save before action.** Answer, skip and download save a dirty form first; a failed save stops
-  the action. Answer and skip mutations live in `DraftView`, above the form's key, like the save:
-  their answer brings a new version that remounts the form, and their pending state, their errors
-  and what each question card holds must outlive it. While any of them or a save runs, the
-  editor's fields and every card wait, since the remount would drop what was typed meanwhile and
-  a second reply would race the first.
+  the action. Answer, skip and download mutations live in `DraftView`, above the form's key, like
+  the save: a save before them, or their own answer, brings a new version that remounts the form,
+  and their pending state, their errors and what each question card holds must outlive it. While
+  a save, an answer or a skip runs, the editor's fields and every card wait, since the remount
+  would drop what was typed meanwhile and a second reply would race the first. A download brings
+  no new version, so nothing waits for it.
 - **Leaving with unsaved changes:** a `beforeunload` prompt and a router blocker, both in the save
   bar. The blocker lets through a change of search params only (`?tab=`), the way to login (the
   session ended) and a navigation with the `discardEdits` state (the CV was deleted).
