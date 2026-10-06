@@ -10,26 +10,14 @@ import {
 import { http, HttpResponse } from 'msw'
 import { readyWhenAnswered } from '@/mocks/cv-status'
 import { sessionUser, unauthorized } from '@/mocks/handlers/auth'
-import { HOUR } from '@/mocks/handlers/cvs'
 import { errorResponse, readJson, validationError } from '@/mocks/respond'
-import { updateDb, type MockDb } from '@/mocks/store'
+import { updateDb } from '@/mocks/store'
 import { runWorker } from '@/mocks/worker'
 
 type Params = { id: string; questionId: string }
 
-/** The answer limit of docs/api.md. */
-export const ANSWERS_PER_HOUR = 60
-
-/** The session user's answers within the last hour. */
-export const recentAnswers = (db: MockDb, userId: string, now: number) =>
-  (db.answers[userId] ?? []).filter((at) => now - at < HOUR)
-
 /** Finds the session user's CV and its open question, or the error the API would answer. */
-function openQuestion(
-  params: Params,
-  close: (cv: Cv, question: Question) => Response | void,
-  { isAnswer = false } = {},
-) {
+function openQuestion(params: Params, close: (cv: Cv, question: Question) => Response | void) {
   const user = sessionUser()
   if (!user) return unauthorized()
   const now = Date.now()
@@ -51,8 +39,6 @@ function openQuestion(
     }
     const refused = close(entry.cv, question)
     if (refused) return refused
-    // Counted for the usage endpoint; the mock does not enforce the answer limit.
-    if (isAnswer) db.answers[user.id] = [...recentAnswers(db, user.id, now), now]
     readyWhenAnswered(entry.cv)
     entry.cv.version += 1
     entry.cv.updatedAt = new Date(now).toISOString()
@@ -63,26 +49,18 @@ function openQuestion(
 export const questionHandlers = [
   http.post<Params>('/api/cvs/:id/questions/:questionId/answer', async ({ params, request }) => {
     const body: unknown = await readJson(request)
-    return openQuestion(
-      params,
-      (cv, question) => {
-        const answer = answerSchemaFor(question).safeParse(body)
-        if (!answer.success) {
-          // A wrong kind is a state the question is not in; anything else is a bad body.
-          return answer.error.issues.some((issue) => issue.path[0] === 'kind')
-            ? errorResponse(
-                409,
-                'INVALID_STATE',
-                `This question takes a "${question.kind}" answer.`,
-              )
-            : validationError(answer.error)
-        }
-        cv.data = applyAnswer(cv.data!, question, answer.data, () => crypto.randomUUID())
-        question.status = 'answered'
-        question.answer = storedAnswer(answer.data)
-      },
-      { isAnswer: true },
-    )
+    return openQuestion(params, (cv, question) => {
+      const answer = answerSchemaFor(question).safeParse(body)
+      if (!answer.success) {
+        // A wrong kind is a state the question is not in; anything else is a bad body.
+        return answer.error.issues.some((issue) => issue.path[0] === 'kind')
+          ? errorResponse(409, 'INVALID_STATE', `This question takes a "${question.kind}" answer.`)
+          : validationError(answer.error)
+      }
+      cv.data = applyAnswer(cv.data!, question, answer.data, () => crypto.randomUUID())
+      question.status = 'answered'
+      question.answer = storedAnswer(answer.data)
+    })
   }),
 
   http.post<Params>('/api/cvs/:id/questions/:questionId/skip', ({ params }) =>

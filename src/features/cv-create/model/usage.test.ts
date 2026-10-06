@@ -6,7 +6,6 @@ const at = '2026-10-06T14:05:00.000Z'
 const usage = (generations: number, active: number): Usage => ({
   generations: { used: generations, limit: 10, resetsAt: at },
   active: { used: active, limit: 2 },
-  answers: { used: 0, limit: 60, resetsAt: at },
 })
 const time = (iso: string) => `T${iso.slice(11, 16)}`
 
