@@ -146,7 +146,13 @@ describe('generation', () => {
     await wait(3000)
     expect(await screen.findByText('Checking facts against your source')).toBeVisible()
 
-    await wait(9000)
+    // The fact check rejected the draft once: it is revised, then checked again.
+    await wait(3000)
+    expect(await screen.findByText('Fixing unconfirmed facts')).toBeVisible()
+    await wait(3000)
+    expect(await screen.findByText('Checking facts against your source')).toBeVisible()
+
+    await wait(6000)
     expect(await screen.findByText('4 open questions')).toBeVisible()
     expect(screen.getByText('Needs your answers')).toBeVisible()
     expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
@@ -163,7 +169,7 @@ describe('generation', () => {
     renderApp(window.location.pathname)
 
     expect(await screen.findByText('Writing your CV')).toBeVisible()
-    await wait(12000)
+    await wait(15000)
     expect(await screen.findByLabelText('CV title')).toBeVisible()
   })
 
@@ -180,30 +186,42 @@ describe('generation', () => {
     await wait(3000)
     expect(await screen.findByText('Writing your CV · attempt 2 of 3')).toBeVisible()
 
-    await wait(12000)
+    await wait(15000)
     expect(await screen.findByLabelText('CV title')).toBeVisible()
   })
 
-  test('"ready" in the role ends with no questions', async () => {
+  test('"ready" in the role skips the revision and ends with no questions', async () => {
     signedIn()
     renderApp('/cvs/new')
     await createCv('Ready Engineer')
     await screen.findByText('Starting soon')
 
-    await wait(15000)
+    // The fact check accepted the draft at once: nothing to revise.
+    await wait(6000)
+    expect(await screen.findByText('Checking facts against your source')).toBeVisible()
+    await wait(3000)
+    expect(await screen.findByText('Saving')).toBeVisible()
+
+    await wait(6000)
 
     expect(await screen.findByLabelText('CV title')).toBeVisible()
     expect(screen.getByText('Ready')).toBeVisible()
     expect(screen.queryByText(/open question/)).toBeNull()
   })
 
-  test('"fail" in the role ends in Failed, and Retry starts again', async () => {
+  test('"fail" in the role fails every attempt, ends in Failed, and Retry starts again', async () => {
     signedIn()
     renderApp('/cvs/new')
     const user = await createCv('Fail Engineer')
     await screen.findByText('Starting soon')
 
-    await wait(9000)
+    await wait(6000)
+    expect(await screen.findByText('Attempt 1 of 3 failed, retrying…')).toBeVisible()
+    // The wait doubles before each next attempt.
+    await wait(6000)
+    expect(await screen.findByText('Attempt 2 of 3 failed, retrying…')).toBeVisible()
+
+    await wait(6000)
     expect(
       await screen.findByText(
         'The AI service is unavailable right now. Try again in a few minutes.',
@@ -212,7 +230,7 @@ describe('generation', () => {
 
     await user.click(screen.getByRole('button', { name: 'Retry' }))
     expect(await screen.findByText('Starting soon')).toBeVisible()
-    await wait(15000)
+    await wait(18000)
     expect(await screen.findByLabelText('CV title')).toBeVisible()
   })
 

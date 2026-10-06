@@ -369,8 +369,12 @@ Why it is built this way: [ADR 0003](adr/0003-mock-mode-outside-the-layers.md).
   (`409`), version conflict, validation, limits. The store keeps users, the session, CVs and
   questions in browser storage, and the fake worker advances a CV by elapsed time, so a reload
   loses nothing. The worker has no timers: every handler first moves each CV to where the clock
-  says it is (`runWorker`). A generation takes about 14 s; a keyword in the target role picks
-  the outcome (`fail`, `retry`, `ready`, otherwise questions), and a retried `fail` CV succeeds.
+  says it is (`runWorker`). One CV runs at a time, one stage per polling interval; a keyword in
+  the target role picks the course, as the API's worker can take it: `ready` is accepted at once
+  (no `revising`), the default is revised once (`verifying` → `revising` → `verifying`) and ends
+  with questions, `retry` fails its first attempt and succeeds after `retrying`, `fail` fails all
+  three attempts with a doubling wait between them; a retried `fail` CV succeeds. A generation
+  takes 9 to 20 s.
   A word in an uploaded PDF's name picks what it holds: `scan` no text (`422`), `long` more text
   than a CV can start from, `short` less; any other PDF gives the sample CV text.
 - **Honesty.** Every mock response goes through the same contract schemas in the API client, so a

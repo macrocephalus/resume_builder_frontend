@@ -7,19 +7,18 @@ import { generatedDraft } from '@/mocks/fixtures/draft'
 import type { MockCv, MockJob, Scenario } from '@/mocks/store'
 
 /**
- * A generation takes about 14 s. A stage lasts as long as one polling interval and starts half
- * way between two polls, so each poll sees the next stage.
+ * A stage lasts as long as one polling interval and starts half way between two polls, so each
+ * poll sees the next stage. A generation takes 9 to 20 s, by scenario, after at least 1.5 s in
+ * the queue.
  */
 export const WORKER_TIMING = {
   /** the least time in the queue, even when the worker is free */
   queued: 1500,
-  /** each of the four stages */
+  /** each stage */
   stage: 3000,
-  /** the backoff before a retried attempt */
+  /** the wait before the second attempt */
   backoff: 2000,
 }
-
-const STAGES: GenerationStage[] = ['drafting', 'verifying', 'revising', 'saving']
 
 /** The outcome is picked by a keyword in the target role, so every status can be shown on demand. */
 export function scenarioFor(targetRole: string): Scenario {
@@ -30,13 +29,29 @@ export function scenarioFor(targetRole: string): Scenario {
   return 'questions'
 }
 
-/** How long the worker is busy with a job of this scenario. */
-function duration(scenario: Scenario): number {
-  const { stage, backoff } = WORKER_TIMING
-  if (scenario === 'fail') return 2 * stage
-  if (scenario === 'retry') return stage + backoff + STAGES.length * stage
-  return STAGES.length * stage
+/** One attempt: the stages it goes through, and whether it fails at the end of them. */
+type Attempt = { stages: GenerationStage[]; fails: boolean }
+
+/** A draft the fact check accepts at once: the agent never revises it. */
+const ACCEPTED: Attempt = { stages: ['drafting', 'verifying', 'saving'], fails: false }
+/** A draft the fact check rejects once: revised, then checked again. */
+const REVISED: Attempt = {
+  stages: ['drafting', 'verifying', 'revising', 'verifying', 'saving'],
+  fails: false,
 }
+/** The AI service gives up while drafting. */
+const FAILED: Attempt = { stages: ['drafting'], fails: true }
+
+/** The attempts of each scenario, in the order the worker runs them (as the API's worker does). */
+const PLANS: Record<Scenario, Attempt[]> = {
+  ready: [ACCEPTED],
+  questions: [REVISED],
+  retry: [FAILED, REVISED],
+  fail: [FAILED, FAILED, FAILED],
+}
+
+/** The wait after the failed attempt `index + 1`; it doubles each time, as BullMQ's does. */
+const backoffAfter = (index: number) => WORKER_TIMING.backoff * 2 ** index
 
 type Phase =
   | {
@@ -47,27 +62,40 @@ type Phase =
   | { status: 'failed' }
   | { status: 'done' }
 
-/** Where a job is `t` ms after the worker took it. */
+/** Where a job is `t` ms after the worker took it; with `t` past its end, how it ended. */
 function phaseAt(t: number, scenario: Scenario): Phase {
-  const { stage, backoff } = WORKER_TIMING
-  const stageAt = (time: number) => STAGES[Math.floor(time / stage)] ?? null
+  const { stage } = WORKER_TIMING
+  const plan = PLANS[scenario]
+  let start = 0
+  for (const [index, attempt] of plan.entries()) {
+    const running = t - start
+    if (running < attempt.stages.length * stage) {
+      return {
+        status: 'generating',
+        stage: attempt.stages[Math.floor(running / stage)]!,
+        attempt: index + 1,
+      }
+    }
+    start += attempt.stages.length * stage
+    if (!attempt.fails) return { status: 'done' }
+    if (index === plan.length - 1) return { status: 'failed' }
+    const wait = backoffAfter(index)
+    if (t - start < wait) return { status: 'retrying', stage: null, attempt: index + 1 }
+    start += wait
+  }
+  return { status: 'failed' }
+}
 
-  if (scenario === 'fail') {
-    // The first two stages run, then the AI service gives up.
-    return t < 2 * stage
-      ? { status: 'generating', stage: stageAt(t), attempt: 1 }
-      : { status: 'failed' }
-  }
-  let attempt = 1
-  if (scenario === 'retry') {
-    if (t < stage) return { status: 'generating', stage: 'drafting', attempt: 1 }
-    if (t < stage + backoff) return { status: 'retrying', stage: null, attempt: 1 }
-    t -= stage + backoff
-    attempt = 2
-  }
-  return t < STAGES.length * stage
-    ? { status: 'generating', stage: stageAt(t), attempt }
-    : { status: 'done' }
+/** How long the worker is busy with a job of this scenario: its attempts and the waits between. */
+function duration(scenario: Scenario): number {
+  const plan = PLANS[scenario]
+  return plan.reduce(
+    (total, attempt, index) =>
+      total +
+      attempt.stages.length * WORKER_TIMING.stage +
+      (index < plan.length - 1 ? backoffAfter(index) : 0),
+    0,
+  )
 }
 
 function finish(entry: MockCv, job: MockJob): void {
