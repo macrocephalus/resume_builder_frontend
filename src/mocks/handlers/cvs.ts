@@ -21,7 +21,7 @@ import { updateDb, type MockCv, type MockDb, type Scenario } from '@/mocks/store
 import { runWorker, scenarioFor } from '@/mocks/worker'
 
 /** The limits of docs/api.md: CVs in progress at once, generations per hour. */
-export const GENERATION_LIMITS = { active: 2, perHour: 10 }
+export const GENERATION_LIMITS = { active: 4, perHour: 10 }
 export const HOUR = 60 * 60 * 1000
 
 const notFound = () => errorResponse(404, 'NOT_FOUND', 'This CV does not exist.')
@@ -66,7 +66,7 @@ const byNewest = (a: Cv, b: Cv) => b.updatedAt.localeCompare(a.updatedAt)
 /** Starting a generation (create or retry) counts toward both limits; `null` when it may start. */
 function limitResponse(db: MockDb, userId: string, now: number) {
   if (activeCount(db, userId) >= GENERATION_LIMITS.active) {
-    return errorResponse(429, 'TOO_MANY_ACTIVE', 'Two CVs are already being generated.', {
+    return errorResponse(429, 'TOO_MANY_ACTIVE', 'Four CVs are already being generated.', {
       details: { limit: GENERATION_LIMITS.active },
     })
   }

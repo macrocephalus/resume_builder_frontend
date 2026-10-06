@@ -78,12 +78,14 @@ describe('Also fits', () => {
   test('a CV from another one counts toward the limits', async () => {
     const { owner, parent } = seedParent()
     seedCv(owner, 'generating')
+    seedCv(owner, 'retrying')
+    seedCv(owner, 'queued')
     seedCv(owner, 'queued')
     renderApp(`/cvs/new?fromCvId=${parent.id}&role=CTO`)
 
     expect(
       await screen.findByText(
-        'You already have 2 CVs being generated. Try again when one of them is done.',
+        'You already have 4 CVs being generated. Try again when one of them is done.',
       ),
     ).toBeVisible()
     expect(create()).toBeDisabled()

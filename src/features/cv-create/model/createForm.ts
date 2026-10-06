@@ -54,7 +54,7 @@ export function readPrefill(params: URLSearchParams): Prefill {
   }
 }
 
-/** The create was refused for a limit: two CVs in progress, or the hourly count. */
+/** The create was refused for a limit: the CVs in progress, or the hourly count. */
 export const isLimitError = (error: unknown) =>
   error instanceof ApiError && (error.code === 'TOO_MANY_ACTIVE' || error.code === 'RATE_LIMITED')
 
@@ -72,7 +72,7 @@ export function createFailure(error: unknown): CreateFailure {
     case 'TOO_MANY_ACTIVE':
       return {
         field: null,
-        message: `You already have ${limit(error, 2)} CVs being generated. Try again when one of them is done.`,
+        message: `You already have ${limit(error, 4)} CVs being generated. Try again when one of them is done.`,
       }
     case 'RATE_LIMITED':
       return {

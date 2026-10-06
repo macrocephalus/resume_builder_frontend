@@ -5,7 +5,7 @@ import { blockedText, generationsText } from '@/features/cv-create/model/usage'
 const at = '2026-10-06T14:05:00.000Z'
 const usage = (generations: number, active: number): Usage => ({
   generations: { used: generations, limit: 10, resetsAt: at },
-  active: { used: active, limit: 2 },
+  active: { used: active, limit: 4 },
 })
 const time = (iso: string) => `T${iso.slice(11, 16)}`
 
@@ -24,8 +24,8 @@ describe('usage', () => {
     expect(blockedText(usage(10, 0), time)).toBe(
       'You have used all 10 generations for this hour. The next one frees up at T14:05.',
     )
-    expect(blockedText(usage(3, 2), time)).toBe(
-      'You already have 2 CVs being generated. Try again when one of them is done.',
+    expect(blockedText(usage(3, 4), time)).toBe(
+      'You already have 4 CVs being generated. Try again when one of them is done.',
     )
   })
 })

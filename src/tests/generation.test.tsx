@@ -73,18 +73,20 @@ describe('New CV', () => {
     expect(screen.getByText('12 / 20 000 characters')).toBeVisible()
   })
 
-  test('says when two CVs are already being generated', async () => {
+  test('says when four CVs are already being generated', async () => {
     const ann = signedIn()
     renderApp('/cvs/new')
     // Started in another tab after the form showed the limits.
     await screen.findByText('0 of 10 generations used this hour')
     seedCv(ann, 'queued')
+    seedCv(ann, 'queued')
     seedCv(ann, 'generating')
+    seedCv(ann, 'retrying')
 
     await createCv('Senior Backend Engineer')
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
-      'You already have 2 CVs being generated. Try again when one of them is done.',
+      'You already have 4 CVs being generated. Try again when one of them is done.',
     )
     expect(window.location.pathname).toBe('/cvs/new')
     // The limits, asked again, now hold Create CV back, without saying it a second time.

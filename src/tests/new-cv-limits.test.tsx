@@ -66,15 +66,17 @@ describe('New CV limits', () => {
     expect(create()).toBeDisabled()
   })
 
-  test('with two CVs in progress, Create CV waits until one is done', async () => {
+  test('with four CVs in progress, Create CV waits until one is done', async () => {
     const ann = signedIn()
     seedCv(ann, 'queued')
+    seedCv(ann, 'queued')
     seedCv(ann, 'generating')
+    seedCv(ann, 'retrying')
     renderApp('/cvs/new')
 
     expect(
       await screen.findByText(
-        'You already have 2 CVs being generated. Try again when one of them is done.',
+        'You already have 4 CVs being generated. Try again when one of them is done.',
       ),
     ).toBeVisible()
     expect(create()).toBeDisabled()
