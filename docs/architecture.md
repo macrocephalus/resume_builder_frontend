@@ -317,8 +317,8 @@ The tab of the CV screen is in the URL, so a reload and a shared link open the s
 written with `replace`, so Back leaves the CV screen instead of walking through tabs.
 
 - Questions is a tab while the CV has any question, open or closed, so after the last answer the
-  panel still says "no open questions" and lists the answers. The spec's "only for
-  `needs_input`" would make the panel vanish with the answer that closes it.
+  panel still says "no open questions" and lists the answers; a `ready` CV that never had
+  questions has no such tab.
 - Below 980 px the editor stays mounted and CSS hides it on another tab, so its unsaved values
   stay; the side panel is rendered only while its tab is chosen. From 980 px the editor is always
   shown and the side panel shows the chosen side tab, or the first one when the tab is Edit.

@@ -12,7 +12,7 @@ closing the last question makes the CV ready.
 
 **Spec:** [../spec.md](../spec.md)
 
-- [x] Questions panel with the open count in its tab (only while the CV needs input); each card says which part of the CV it is about
+- [x] Questions panel with the open count in its tab (while the CV has any question, open or closed — confirmed with the user, so the panel can say none are open after the last answer); each card says which part of the CV it is about
 - [x] Cards by kind: `text` input; `choice` options plus "Other" with an input; `multi` toggles plus "Other, comma-separated"; `confirm` shows the quoted claim with "Yes, add it" / "No"
 - [x] Submit is disabled until the answer is valid for its kind (not empty, ≤ 1 000 chars, `multi` needs a value or Other); Skip is offered for all kinds except `confirm`
 - [x] Unsaved edits are saved before an answer or skip is sent; if that save fails the answer is not sent and the error is shown

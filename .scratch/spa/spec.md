@@ -480,8 +480,8 @@ generation progress, the editor with questions and preview, and PDF download.
     - Bullets are edited as one text area, one per line.
     - Skills are chips.
     - Missing required blocks are marked.
-  - **Side panel** tabs: Questions · N (only for `needs_input`), Match (second layer) and
-    Preview.
+  - **Side panel** tabs: Questions · N (while the CV has any question, open or closed), Match
+    (second layer) and Preview.
   - **Save bar** when the form is dirty.
 
 ### Editor mechanics
