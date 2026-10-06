@@ -14,6 +14,7 @@ import {
 import { http, HttpResponse } from 'msw'
 import { readyWhenAnswered } from '@/mocks/answers'
 import { buildCv } from '@/mocks/fixtures/cv'
+import { cvPdf } from '@/mocks/fixtures/pdf'
 import { sessionUser, unauthorized } from '@/mocks/handlers/auth'
 import { errorResponse, readJson, validationError } from '@/mocks/respond'
 import { updateDb, type MockCv, type MockDb, type Scenario } from '@/mocks/store'
@@ -76,6 +77,15 @@ function limitResponse(db: MockDb, userId: string, now: number) {
 function countGeneration(db: MockDb, userId: string, now: number): void {
   db.generations[userId] = [...(db.generations[userId] ?? []).filter((at) => now - at < HOUR), now]
 }
+
+/** The title as a file name the header can carry: ASCII letters, digits, spaces, `-` and `_`. */
+const pdfFileName = (title: string) =>
+  `${
+    title
+      .replace(/[^\w -]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim() || 'cv'
+  }.pdf`
 
 /**
  * After an edit: an open question about an item that is gone is skipped, and a `needs_input` CV
@@ -164,6 +174,22 @@ export const cvHandlers = [
     if (!user) return unauthorized()
     const entry = ownEntries(currentDb(), user.id).find((own) => own.cv.id === params.id)
     return entry ? HttpResponse.json({ cv: entry.cv }) : notFound()
+  }),
+
+  http.get('/api/cvs/:id/pdf', ({ params }) => {
+    const user = sessionUser()
+    if (!user) return unauthorized()
+    const entry = ownEntries(currentDb(), user.id).find((own) => own.cv.id === params.id)
+    if (!entry) return notFound()
+    if (!hasDraft(entry.cv.status)) {
+      return errorResponse(409, 'INVALID_STATE', 'This CV has no draft to download yet.')
+    }
+    return new HttpResponse(cvPdf.slice(), {
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename="${pdfFileName(entry.cv.title)}"`,
+      },
+    })
   }),
 
   http.patch('/api/cvs/:id', async ({ params, request }) => {

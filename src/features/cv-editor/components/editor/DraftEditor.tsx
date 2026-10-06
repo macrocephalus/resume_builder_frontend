@@ -10,6 +10,7 @@ import { SaveBar } from '@/features/cv-editor/components/editor/SaveBar'
 import { useCvTab } from '@/features/cv-editor/components/editor/useCvTab'
 import { PreviewPanel } from '@/features/cv-editor/components/preview/PreviewPanel'
 import { QuestionsPanel } from '@/features/cv-editor/components/questions/QuestionsPanel'
+import type { useDownloadPdf } from '@/features/cv-editor/api/useDownloadPdf'
 import type { useSaveCv } from '@/features/cv-editor/api/useSaveCv'
 import {
   draftFormSchema,
@@ -34,6 +35,9 @@ type DraftEditorProps = {
   /** Sends an answer, or a skip with `null`. */
   onSend: (questionId: string, answer: Answer | null) => void
   replies: ReplyState
+  pdf: ReturnType<typeof useDownloadPdf>
+  /** Fetches the PDF of the saved draft. */
+  onDownload: () => void
 }
 
 /**
@@ -58,6 +62,8 @@ export function DraftEditor({
   onDiscard,
   onSend,
   replies,
+  pdf,
+  onDownload,
 }: DraftEditorProps) {
   const defaultValues = toDraftForm(cv)
   const form = useForm<DraftFormValues>({
@@ -85,8 +91,8 @@ export function DraftEditor({
     () => choose('edit'),
   )
 
-  // An answer uses the saved draft, so unsaved edits are saved first; if that fails, or the form
-  // has errors, the action does not start.
+  // An answer and the PDF use the saved draft, so unsaved edits are saved first; if that fails,
+  // or the form has errors, the action does not start.
   const saveFirst = async (): Promise<SaveFirstOutcome> => {
     if (!(await form.trigger())) {
       // On a phone the marked fields sit in the hidden editor panel.
@@ -109,6 +115,12 @@ export function DraftEditor({
     if (outcome !== 'saved') return outcome
     onSend(question.id, answer)
     return 'sent'
+  }
+
+  const download = async (): Promise<SaveFirstOutcome> => {
+    const outcome = await saveFirst()
+    if (outcome === 'saved') onDownload()
+    return outcome
   }
 
   // A save or an answer brings a new version, which remounts the form: nothing typed meanwhile
@@ -138,6 +150,8 @@ export function DraftEditor({
             reloading={reloading}
             reloadError={reloadError}
             onReload={onReload}
+            pdf={pdf}
+            onDownload={download}
           />
         </fieldset>
         <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)]">

@@ -9,8 +9,10 @@ import { Notice } from '@/shared/ui/Notice'
 import { Panel } from '@/shared/ui/Panel'
 import { StatusPill } from '@/entities/cv/components/StatusPill'
 import { DeleteCv } from '@/features/cv-editor/components/DeleteCv'
+import { DownloadPdf } from '@/features/cv-editor/components/pdf/DownloadPdf'
 import type { DraftFormValues } from '@/features/cv-editor/model/draftForm'
 import { verificationText } from '@/features/cv-editor/model/questions'
+import type { SaveFirstOutcome } from '@/features/cv-editor/model/saveErrors'
 
 type DraftHeaderProps = {
   cv: Cv
@@ -20,10 +22,24 @@ type DraftHeaderProps = {
   /** Why "Reload latest" failed. */
   reloadError: unknown
   onReload: () => void
+  pdf: { isPending: boolean; error: unknown }
+  /** Saves unsaved edits first, then downloads the PDF. */
+  onDownload: () => Promise<SaveFirstOutcome>
 }
 
-/** The editable title, the status and target role, the fact-check and conflict notices, Delete. */
-export function DraftHeader({ cv, conflict, reloading, reloadError, onReload }: DraftHeaderProps) {
+/**
+ * The editable title, the status and target role, the fact-check and conflict notices, Download
+ * PDF and Delete.
+ */
+export function DraftHeader({
+  cv,
+  conflict,
+  reloading,
+  reloadError,
+  onReload,
+  pdf,
+  onDownload,
+}: DraftHeaderProps) {
   const open = cv.questions.filter((question) => question.status === 'open').length
   const { register } = useFormContext<DraftFormValues>()
   const { errors } = useFormState<DraftFormValues>({ name: 'title', exact: true })
@@ -55,6 +71,7 @@ export function DraftHeader({ cv, conflict, reloading, reloadError, onReload }: 
           {reloadError ? ` Could not reload. ${errorText(reloadError)}` : null}
         </Notice>
       ) : null}
+      <DownloadPdf pdf={pdf} onDownload={onDownload} openQuestions={open} />
       <DeleteCv cvId={cv.id} />
     </Panel>
   )

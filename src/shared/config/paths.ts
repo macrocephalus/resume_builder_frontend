@@ -50,6 +50,7 @@ export const apiPaths = {
   cvs: '/api/cvs',
   cv: (id: string) => `/api/cvs/${encodeURIComponent(id)}`,
   cvRetry: (id: string) => `/api/cvs/${encodeURIComponent(id)}/retry`,
+  cvPdf: (id: string) => `/api/cvs/${encodeURIComponent(id)}/pdf`,
   questionAnswer: (cvId: string, questionId: string) =>
     `/api/cvs/${encodeURIComponent(cvId)}/questions/${encodeURIComponent(questionId)}/answer`,
   questionSkip: (cvId: string, questionId: string) =>

@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useState, useTransition } from 'react'
 import { cvQueries } from '@/entities/cv/api/cvQueries'
 import { useAnswerQuestion } from '@/features/cv-editor/api/useAnswerQuestion'
+import { useDownloadPdf } from '@/features/cv-editor/api/useDownloadPdf'
 import { useSaveCv } from '@/features/cv-editor/api/useSaveCv'
 import { useSkipQuestion } from '@/features/cv-editor/api/useSkipQuestion'
 import { DraftEditor } from '@/features/cv-editor/components/editor/DraftEditor'
@@ -11,8 +12,9 @@ import type { AnswerDraft } from '@/features/cv-editor/model/questions'
 import type { ReplyState } from '@/features/cv-editor/model/replies'
 
 /**
- * The CV screen for a CV with a draft. The save, answer and skip live here, above the form, so
- * "Saved ✓" and their errors outlive the remount that a new version causes.
+ * The CV screen for a CV with a draft. The save, answer, skip and download live here, above the
+ * form, so "Saved ✓", their pending state and their errors outlive the remount that a new version
+ * causes.
  */
 export function DraftView({ cv }: { cv: Cv }) {
   const queryClient = useQueryClient()
@@ -22,6 +24,7 @@ export function DraftView({ cv }: { cv: Cv }) {
   // Counts discards, so a discard mounts a fresh form like a new version does.
   const [discards, setDiscards] = useState(0)
 
+  const pdf = useDownloadPdf(cv.id)
   const answer = useAnswerQuestion(cv.id)
   const skip = useSkipQuestion(cv.id)
   // What each question card holds; up here, a remount after a save does not lose it.
@@ -37,6 +40,8 @@ export function DraftView({ cv }: { cv: Cv }) {
   }
   const saveEdits = (body: PatchCvBody) => {
     forgetReplies()
+    // A failed download was about the version before; the button stays to try again.
+    pdf.reset()
     save.mutate(body)
   }
   const replyError = answer.error ?? skip.error
@@ -55,6 +60,7 @@ export function DraftView({ cv }: { cv: Cv }) {
 
   const discard = () => {
     save.reset()
+    pdf.reset()
     forgetReplies()
     setDiscards((count) => count + 1)
   }
@@ -88,6 +94,8 @@ export function DraftView({ cv }: { cv: Cv }) {
         onDiscard={discard}
         onSend={send}
         replies={replies}
+        pdf={pdf}
+        onDownload={() => pdf.mutate()}
       />
     </div>
   )
