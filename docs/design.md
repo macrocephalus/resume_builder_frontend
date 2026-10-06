@@ -147,7 +147,7 @@ a `Badge` or `Tag` next to `Pill`.
 | `EmptyState`, `ErrorState` | `ErrorState` has Retry | — |
 | `StepList` | numbered steps between thin lines ("how it works" on the auth screen) | — |
 | `ConfirmButton` | two-step inline confirm (delete) | — |
-| `SegmentedControl` | tabs: Edit · Questions N · Match · Preview; a `fieldset` of `aria-pressed` buttons | **yes** |
+| `SegmentedControl` | tabs: Edit · Questions N · Match · Preview; a `fieldset` of `aria-pressed` buttons; `block` for full width | **yes** |
 | `Sheet` | the white A4 preview page in Liberation Sans; at least A4 tall, grows with content; the text inside takes classes from `sheetText.ts` (name, contacts, heading, item, meta, bullets), sized in `cqw` like the PDF | — |
 | `FloatingBar` | sticky bottom bar with `env(safe-area-inset-bottom)` (save bar shell) | **yes** |
 | `GlassCard` | auth card | **yes** |
@@ -167,12 +167,13 @@ our own; sizes 16 / 20; decorative icons get `aria-hidden`.
 ## Screen layout
 
 - **≥ 980 px:** two columns. Editor on the left (`1.08fr`); side panel on the right (`.92fr`)
-  with the Questions / Match / Preview tabs. The side panel sticks under the top bar and scrolls
-  on its own. The tabs show here only when there is more than one side panel (Preview alone
+  with the Questions / Match / Preview tabs. The Preview panel sticks under the top bar and
+  scrolls on its own, so the one A4 sheet stays in view next to a long editor; the Questions
+  panel scrolls with the page, so no card is cut at the bottom of the screen. The tabs show here only when there is more than one side panel (Preview alone
   needs no switch), and offer the side panels only: the editor is always there.
 - **< 980 px:** one column.
-  - The `SegmentedControl` (Edit · Questions N · Match · Preview) sticks to the top under the top
-    bar, and one panel shows at a time.
+  - The `SegmentedControl` (Edit · Questions N · Match · Preview) spans the width and sticks
+    right under the top bar, with no gap for content to show through; one panel shows at a time.
   - The save bar sticks to the bottom.
   - Three glass surfaces in total: top bar, tabs, save bar.
 - List rows stack below 760 px.

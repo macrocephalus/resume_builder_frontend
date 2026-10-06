@@ -116,7 +116,9 @@ export function DraftEditor({
         items={switchTabs.map((value) => ({ value, label: tabLabel(value, cv) }))}
         value={switchValue}
         onChange={choose}
-        className={cx('justify-self-start', !wide && 'sticky top-16 z-[5]')}
+        block={!wide}
+        // On a phone it sticks right under the top bar, so nothing scrolls into a gap above it.
+        className={cx(wide ? 'justify-self-start' : 'sticky top-14 z-[5]')}
       />
     ) : null
 
@@ -151,7 +153,15 @@ export function DraftEditor({
             ))}
           </fieldset>
           {wide || tab !== 'edit' ? (
-            <div className="flex min-w-0 flex-col gap-3 lg:sticky lg:top-18 lg:max-h-[calc(100dvh-5.5rem)] lg:overflow-y-auto">
+            <div
+              className={cx(
+                'flex min-w-0 flex-col gap-3',
+                // The one A4 sheet stays in view next to a long editor; a list of questions
+                // scrolls with the page instead of being cut at the bottom of the screen.
+                side === 'preview' &&
+                  'lg:sticky lg:top-18 lg:max-h-[calc(100dvh-5.5rem)] lg:overflow-y-auto',
+              )}
+            >
               {wide ? panelSwitch : null}
               {side === 'questions' ? (
                 <QuestionsPanel cv={cv} onReply={reply} replies={replies} saving={save.isPending} />

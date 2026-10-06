@@ -12,6 +12,8 @@ type SegmentedControlProps<V extends string> = {
   items: SegmentedItem<V>[]
   value: V
   onChange: (value: V) => void
+  /** Full width, the buttons sharing it equally (the phone's panel switch). */
+  block?: boolean
   className?: string
 }
 
@@ -21,11 +23,16 @@ export function SegmentedControl<V extends string>({
   items,
   value,
   onChange,
+  block = false,
   className,
 }: SegmentedControlProps<V>) {
   return (
     <fieldset
-      className={cx('inline-flex max-w-full min-w-0 gap-1 rounded-md border glass p-1', className)}
+      className={cx(
+        'max-w-full min-w-0 gap-1 rounded-md border glass p-1',
+        block ? 'flex w-full' : 'inline-flex',
+        className,
+      )}
     >
       <legend className="sr-only">{label}</legend>
       {items.map((item) => (
@@ -37,6 +44,7 @@ export function SegmentedControl<V extends string>({
           className={cx(
             'min-h-10 cursor-pointer rounded-sm px-3.5 text-sm font-medium whitespace-nowrap motion-safe:transition',
             item.value === value ? 'bg-accent text-on-accent' : 'text-ink hover:bg-surface',
+            block && 'flex-1',
           )}
         >
           {item.label}
