@@ -97,6 +97,7 @@ const screens: Screen[] = [
   },
 ]
 const widths = [390, 1280]
+const screenHeight = 844
 const outDir = fileURLToPath(new URL('../.scratch/screens/', import.meta.url))
 
 const server = await createServer({ mode: 'mock', logLevel: 'error' })
@@ -112,6 +113,20 @@ const sampleExperience =
   'Backend engineer with six years of Node.js and PostgreSQL at Fintory; built the payments API. '
 
 /** Signs up a fresh user through the UI; the mock keeps the session in this page's storage. */
+/**
+ * Makes the window as tall as the page, so one shot shows all of it. Playwright's `fullPage`
+ * draws fixed and sticky layers one screen tall: the backdrop would end there and the bars would
+ * hang in the middle of the picture.
+ */
+async function growToPage(page: Page, width: number) {
+  // Growing the window can change what depends on its height; measure until it settles.
+  for (let tries = 0; tries < 3; tries++) {
+    const height = Number(await page.evaluate('document.documentElement.scrollHeight'))
+    if (height === page.viewportSize()?.height) return
+    await page.setViewportSize({ width, height })
+  }
+}
+
 async function signUp(page: Page) {
   await page.goto(new URL('/signup', baseUrl).href)
   await page.getByLabel('Email', { exact: true }).fill('ann@example.com')
@@ -124,7 +139,7 @@ try {
   await mkdir(outDir, { recursive: true })
 
   for (const width of widths) {
-    const page = await browser.newPage({ viewport: { width, height: 844 } })
+    const page = await browser.newPage({ viewport: { width, height: screenHeight } })
     page.on('request', (request) => {
       const url = new URL(request.url())
       if (url.protocol.startsWith('http') && url.origin !== origin) offOrigin.add(request.url())
@@ -145,7 +160,9 @@ try {
       await screen.act?.(page)
       await page.evaluate('document.fonts.ready')
       const file = `${outDir}${screen.name}-${width}.png`
-      await page.screenshot({ path: file, fullPage: !screen.viewportOnly, animations: 'disabled' })
+      if (!screen.viewportOnly) await growToPage(page, width)
+      await page.screenshot({ path: file, animations: 'disabled' })
+      await page.setViewportSize({ width, height: screenHeight })
       console.log(file)
     }
 
