@@ -10,6 +10,7 @@ import { Notice } from '@/shared/ui/Notice'
 import { useDeleteCv } from '@/entities/cv/api/useDeleteCv'
 import { useRetryCv } from '@/entities/cv/api/useRetryCv'
 import { StatusPill } from '@/entities/cv/components/StatusPill'
+import { matchShortText } from '@/entities/cv/model/matchText'
 import { statusView } from '@/entities/cv/model/statusView'
 
 const questions = (count: number) => (count === 1 ? '1 open question' : `${count} open questions`)
@@ -32,11 +33,7 @@ export function CvRow({ cv }: { cv: CvSummary }) {
           <StatusPill status={cv.status} />
           <span>{cv.targetRole}</span>
           {cv.openQuestions > 0 ? <span>{questions(cv.openQuestions)}</span> : null}
-          {cv.match ? (
-            <span>
-              Match {cv.match.covered}/{cv.match.total}
-            </span>
-          ) : null}
+          {cv.match ? <span>{matchShortText(cv.match)}</span> : null}
           <span>
             Updated <time dateTime={cv.updatedAt}>{formatDateTime(cv.updatedAt)}</time>
           </span>
