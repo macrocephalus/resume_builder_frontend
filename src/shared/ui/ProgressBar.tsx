@@ -16,15 +16,21 @@ type ProgressBarProps = {
   /** 0–100; leave it out when the end is unknown. */
   value?: number
   tone?: Tone
+  /** A measurement with a value (how much of the role a CV covers), not a task in progress. */
+  meter?: boolean
 }
 
-/** A thin bar: filled to `value`, or sliding back and forth when the end is unknown. */
-export function ProgressBar({ label, value, tone = 'accent' }: ProgressBarProps) {
+/**
+ * A thin bar: filled to `value`, or sliding back and forth when the end is unknown. With `meter`
+ * it is announced as a measurement instead of progress.
+ */
+export function ProgressBar({ label, value, tone = 'accent', meter = false }: ProgressBarProps) {
   return (
     <div
-      // A native <progress> cannot draw the sliding indeterminate bar the same in every browser.
+      // A native <progress> or <meter> cannot draw the sliding bar or this look the same in
+      // every browser.
       // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role
-      role="progressbar"
+      role={meter ? 'meter' : 'progressbar'}
       aria-label={label}
       aria-valuemin={value === undefined ? undefined : 0}
       aria-valuemax={value === undefined ? undefined : 100}

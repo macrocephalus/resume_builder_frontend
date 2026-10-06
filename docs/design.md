@@ -143,7 +143,7 @@ a `Badge` or `Tag` next to `Pill`.
 | `ListPanel` | solid panel of rows: a `ul` with a thin line between items | — |
 | `MetaLine` | a wrapping line of small `muted` facts under a title (status, counts, date) | — |
 | `Notice` | `tone`; optional action | — |
-| `ProgressBar` | indeterminate or `value`; `tone` | — |
+| `ProgressBar` | indeterminate or `value`; `tone`; `meter` for a measurement (the match bar) rather than progress | — |
 | `EmptyState`, `ErrorState` | `ErrorState` has Retry | — |
 | `StepList` | numbered steps between thin lines ("how it works" on the auth screen) | — |
 | `ConfirmButton` | two-step inline confirm (delete) | — |
