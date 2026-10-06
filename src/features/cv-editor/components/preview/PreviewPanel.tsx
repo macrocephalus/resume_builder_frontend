@@ -1,8 +1,6 @@
 import { getCvLanguage, type CvLanguage } from '@cv/shared'
-import { useDeferredValue } from 'react'
-import { useWatch } from 'react-hook-form'
+import { useDeferredCvData } from '@/features/cv-editor/components/editor/useDeferredCvData'
 import { CvSheet } from '@/features/cv-editor/components/preview/CvSheet'
-import { toCvData, type DraftFormValues } from '@/features/cv-editor/model/draftForm'
 import { toSheet } from '@/features/cv-editor/model/sheet'
 
 /**
@@ -10,8 +8,7 @@ import { toSheet } from '@/features/cv-editor/model/sheet'
  * typing stays responsive and the sheet catches up a moment later.
  */
 export function PreviewPanel({ language }: { language: CvLanguage }) {
-  const values = useDeferredValue(useWatch<DraftFormValues>() as DraftFormValues)
-  const sheet = toSheet(toCvData(values), getCvLanguage(language).headings)
+  const sheet = toSheet(useDeferredCvData(), getCvLanguage(language).headings)
 
   return (
     <section aria-labelledby="cv-preview-heading">
