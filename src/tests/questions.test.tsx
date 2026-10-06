@@ -78,7 +78,7 @@ describe('Questions panel', () => {
       within(panels)
         .getAllByRole('button')
         .map((button) => button.textContent),
-    ).toEqual(['Questions · 4', 'Preview'])
+    ).toEqual(['Questions · 4', 'Match', 'Preview'])
     expect(card(PHONE)).toBeVisible()
     expect(screen.getByRole('region', { name: 'Contacts' })).toBeVisible()
 

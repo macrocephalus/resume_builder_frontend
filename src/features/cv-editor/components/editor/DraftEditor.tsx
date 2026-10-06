@@ -8,6 +8,7 @@ import { DraftHeader } from '@/features/cv-editor/components/editor/DraftHeader'
 import { MovableBlock } from '@/features/cv-editor/components/editor/MovableBlock'
 import { SaveBar } from '@/features/cv-editor/components/editor/SaveBar'
 import { useCvTab } from '@/features/cv-editor/components/editor/useCvTab'
+import { MatchPanel } from '@/features/cv-editor/components/match/MatchPanel'
 import { PreviewPanel } from '@/features/cv-editor/components/preview/PreviewPanel'
 import { QuestionsPanel } from '@/features/cv-editor/components/questions/QuestionsPanel'
 import type { useDownloadPdf } from '@/features/cv-editor/api/useDownloadPdf'
@@ -185,6 +186,8 @@ export function DraftEditor({
               {wide ? panelSwitch : null}
               {side === 'questions' ? (
                 <QuestionsPanel cv={cv} onReply={reply} replies={replies} saving={save.isPending} />
+              ) : side === 'match' ? (
+                <MatchPanel requirements={cv.requirements} />
               ) : (
                 <PreviewPanel language={cv.language} />
               )}

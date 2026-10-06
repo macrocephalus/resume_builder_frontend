@@ -4,17 +4,22 @@ import type { Cv } from '@cv/shared'
 // always on the left and the side panel shows one of the side tabs. The choice is the `?tab=`
 // search param, so a reload and a shared link open the same panel.
 
-export type CvTab = 'edit' | 'questions' | 'preview'
+export type CvTab = 'edit' | 'questions' | 'match' | 'preview'
 export type SideTab = Exclude<CvTab, 'edit'>
 
 export const TAB_PARAM = 'tab'
 
 /**
  * The tabs a CV has, in order. Questions shows while the CV has any, so the panel can still say
- * "no open questions" and list the answers once the last one is closed.
+ * "no open questions" and list the answers once the last one is closed. Match shows while the
+ * role has requirements to match.
  */
-export const cvTabs = (cv: Pick<Cv, 'questions'>): CvTab[] =>
-  cv.questions.length > 0 ? ['edit', 'questions', 'preview'] : ['edit', 'preview']
+export const cvTabs = (cv: Pick<Cv, 'questions' | 'requirements'>): CvTab[] => [
+  'edit',
+  ...(cv.questions.length > 0 ? (['questions'] as const) : []),
+  ...(cv.requirements.length > 0 ? (['match'] as const) : []),
+  'preview',
+]
 
 export const sideTabs = (tabs: readonly CvTab[]): SideTab[] =>
   tabs.filter((tab): tab is SideTab => tab !== 'edit')
@@ -23,14 +28,19 @@ export const sideTabs = (tabs: readonly CvTab[]): SideTab[] =>
 export const parseTab = (value: string | null, tabs: readonly CvTab[]): CvTab =>
   tabs.find((tab) => tab === value) ?? 'edit'
 
-/** What the side panel shows next to the editor: the chosen side tab, else the first one. */
+/**
+ * What the side panel shows next to the editor: the chosen side tab, else the questions, which
+ * wait for the user, else the preview of what will be downloaded.
+ */
 export const sideTabFor = (tab: CvTab, tabs: readonly CvTab[]): SideTab =>
-  tab === 'edit' ? (sideTabs(tabs)[0] ?? 'preview') : tab
+  tab !== 'edit' ? tab : tabs.includes('questions') ? 'questions' : 'preview'
 
 export function tabLabel(tab: CvTab, cv: Pick<Cv, 'questions'>): string {
   switch (tab) {
     case 'edit':
       return 'Edit'
+    case 'match':
+      return 'Match'
     case 'preview':
       return 'Preview'
     case 'questions': {

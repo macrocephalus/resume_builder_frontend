@@ -189,7 +189,8 @@ describe('Panels', () => {
 
   test('from 980 px the editor and the preview sit side by side, with no switch', async () => {
     wideScreen()
-    await openCv({}, '')
+    // With no requirements there is no Match panel: the preview is the only side panel.
+    await openCv({ requirements: [] }, '')
 
     expect(screen.getByRole('region', { name: 'Contacts' })).toBeVisible()
     expect(preview()).toBeVisible()

@@ -70,7 +70,7 @@ src/
         editor/                has-draft layout, header, the form, blocks, save bar
         questions/             questions panel and the cards by kind
         preview/               the A4 sheet (laid out by model/sheet.ts, like the PDF)
-        match/                 match panel
+        match/                 match panel, the header's live match bar, useLiveMatch
         pdf/                   download button
       api/                     useSaveCv, useAnswerQuestion, useSkipQuestion, useDownloadPdf
       model/                   draft form schema, draft <-> form mapping, tab ids, error texts
@@ -84,6 +84,7 @@ src/
         useRetryCv.ts          used by the list and the CV screen
       model/
         statusView.ts          status -> label, tone, allowed actions
+        matchText.ts           "Covers 7 of 10 requirements", "Match 7/10"
       components/
         StatusPill.tsx
         MatchBar.tsx
@@ -327,9 +328,15 @@ written with `replace`, so Back leaves the CV screen instead of walking through 
 - Questions is a tab while the CV has any question, open or closed, so after the last answer the
   panel still says "no open questions" and lists the answers; a `ready` CV that never had
   questions has no such tab.
+- Match is a tab while the role has requirements. It and the header's match bar run
+  `computeMatch` (`@cv/shared`) on the deferred form values (`useLiveMatch` over
+  `useDeferredCvData`, which the preview reads too), so they follow the edits with no request;
+  `MatchBar` and the "Covers N of M" texts sit in `entities/cv`, shared with the figure in My
+  CVs. The bar is a `meter`, a measurement, not progress.
 - Below 980 px the editor stays mounted and CSS hides it on another tab, so its unsaved values
   stay; the side panel is rendered only while its tab is chosen. From 980 px the editor is always
-  shown and the side panel shows the chosen side tab, or the first one when the tab is Edit.
+  shown and the side panel shows the chosen side tab; when the tab is Edit, the questions if the
+  CV has any, else the preview.
 - Which layout applies is read in JS (`useMediaQuery` in `src/shared/lib`): the switch offers
   different tabs and a different pressed one on each side of 980 px, which CSS alone cannot
   say to a screen reader. jsdom has no `matchMedia`, so tests run the phone layout;

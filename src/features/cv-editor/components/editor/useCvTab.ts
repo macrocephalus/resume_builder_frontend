@@ -14,7 +14,7 @@ import {
  * The panel of the CV screen, kept in `?tab=`. From 980 px (`wide`) the editor is always shown
  * and the switch offers the side tabs only.
  */
-export function useCvTab(cv: Pick<Cv, 'questions'>) {
+export function useCvTab(cv: Pick<Cv, 'questions' | 'requirements'>) {
   const wide = useMediaQuery(WIDE)
   const [searchParams, setSearchParams] = useSearchParams()
   const tabs = cvTabs(cv)

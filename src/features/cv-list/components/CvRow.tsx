@@ -33,7 +33,7 @@ export function CvRow({ cv }: { cv: CvSummary }) {
           <StatusPill status={cv.status} />
           <span>{cv.targetRole}</span>
           {cv.openQuestions > 0 ? <span>{questions(cv.openQuestions)}</span> : null}
-          {cv.match ? <span>{matchShortText(cv.match)}</span> : null}
+          {cv.match && cv.match.total > 0 ? <span>{matchShortText(cv.match)}</span> : null}
           <span>
             Updated <time dateTime={cv.updatedAt}>{formatDateTime(cv.updatedAt)}</time>
           </span>
