@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { describe, expect, onTestFinished, test, vi } from 'vitest'
@@ -98,6 +98,23 @@ describe('New CV limits', () => {
     })
     expect(response.status).toBe(429)
     expect(await response.json()).toMatchObject({ error: { code: 'RATE_LIMITED' } })
+  })
+
+  test('a Retry counts at once: New CV never shows the count from before it', async () => {
+    seedCv(signedIn(), 'failed', { title: 'Olena — Backend' })
+    renderApp('/cvs/new')
+    const user = userEvent.setup()
+    await screen.findByText('0 of 10 generations used this hour')
+
+    await user.click(screen.getByRole('link', { name: 'AI CV Builder' }))
+    const row = await screen.findByRole('listitem', { name: 'Olena — Backend' })
+    await user.click(within(row).getByRole('button', { name: 'Retry' }))
+    await within(row).findByText('In queue')
+    await user.click(screen.getByRole('link', { name: 'New CV' }))
+
+    await screen.findByLabelText('Target role')
+    expect(screen.queryByText('0 of 10 generations used this hour')).toBeNull()
+    expect(await screen.findByText(/^1 of 10 generations used this hour/)).toBeVisible()
   })
 
   test('when the limits cannot be loaded, the form still works', async () => {
