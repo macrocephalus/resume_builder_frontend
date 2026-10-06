@@ -77,6 +77,16 @@ const screens: Screen[] = [
     },
   },
   {
+    name: 'cv-match',
+    path: '/',
+    signedIn: true,
+    act: async (page) => {
+      await page.getByRole('link', { name: 'Open' }).first().click()
+      await page.getByRole('button', { name: 'Match' }).click()
+      await page.getByRole('region', { name: 'Match' }).waitFor()
+    },
+  },
+  {
     name: 'cv-preview',
     path: '/',
     signedIn: true,
