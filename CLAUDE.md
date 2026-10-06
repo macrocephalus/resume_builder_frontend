@@ -31,8 +31,10 @@ Dependencies are installed from the repo root (`pnpm install`): one workspace, o
 `nginx/default.conf.template` proxies `/api` to `$API_UPSTREAM`.
 
 - On its own: `docker compose up --build` here (or `pnpm stack:frontend` from the root) →
-  `http://localhost:8080`, `/api` → backend on the host port 3000. Docker Desktop resolves
-  `host.docker.internal`; on plain Linux Docker set `API_UPSTREAM=<host-ip>:3000`.
+  `http://localhost:8080`, `/api` → backend on the host port 3000 via `host.docker.internal`
+  (mapped to the host gateway, so plain Linux Docker resolves it too). On plain Linux Docker that
+  reaches `pnpm dev` in `backend/`, not `pnpm stack:backend`, which publishes the api on
+  `127.0.0.1` only; run the whole stack there.
 - Whole stack: the root `compose.yaml` includes this file and sets `API_UPSTREAM=api:3000`.
 
 ## Structure

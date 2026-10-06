@@ -11,9 +11,13 @@ services:
       dockerfile: frontend/Dockerfile
     image: resume-builder-frontend
     environment:
-      # Docker Desktop resolves host.docker.internal; on plain Linux Docker pass the host IP,
-      # e.g. API_UPSTREAM=172.17.0.1:3000
       API_UPSTREAM: ${API_UPSTREAM:-host.docker.internal:3000}
+    # Docker Desktop knows host.docker.internal; plain Docker Engine on Linux learns it here, as
+    # the host's address on the bridge network. That address reaches a backend that listens on
+    # every interface (`pnpm dev` in backend/), not one published on 127.0.0.1 only, as
+    # `pnpm stack:backend` does: on Linux run the whole stack (`pnpm stack`) instead.
+    extra_hosts:
+      - host.docker.internal:host-gateway
     ports:
       - 127.0.0.1:${WEB_PORT:-8080}:80
     restart: unless-stopped
