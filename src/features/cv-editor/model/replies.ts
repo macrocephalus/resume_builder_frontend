@@ -1,13 +1,14 @@
 import type { AnswerDraft } from '@/features/cv-editor/model/questions'
+import type { SaveFirstOutcome } from '@/features/cv-editor/model/saveErrors'
 
 /** Why the answer was not sent although the request never started. */
-export const notSentText = {
+export const notSentText: Record<Exclude<SaveFirstOutcome, 'saved'>, string> = {
   'not-saved': 'Not sent: your edits could not be saved. Save them, then answer again.',
   invalid: 'Not sent: fix the marked fields in the editor first.',
-} as const
+}
 
 /** How a reply ended before or when it was sent. */
-export type ReplyOutcome = 'sent' | keyof typeof notSentText
+export type ReplyOutcome = 'sent' | Exclude<SaveFirstOutcome, 'saved'>
 
 /** The answers and skips of the CV screen, kept above the form so a remount keeps them. */
 export type ReplyState = {

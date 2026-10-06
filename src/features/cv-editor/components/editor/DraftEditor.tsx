@@ -18,7 +18,7 @@ import {
   type DraftFormValues,
 } from '@/features/cv-editor/model/draftForm'
 import type { ReplyOutcome, ReplyState } from '@/features/cv-editor/model/replies'
-import { isVersionConflict } from '@/features/cv-editor/model/saveErrors'
+import { isVersionConflict, type SaveFirstOutcome } from '@/features/cv-editor/model/saveErrors'
 import { tabLabel } from '@/features/cv-editor/model/tabs'
 
 type DraftEditorProps = {
@@ -85,9 +85,9 @@ export function DraftEditor({
     () => choose('edit'),
   )
 
-  // An answer is applied to the saved draft, so unsaved edits are saved first; if that fails, or
-  // the form has errors, the answer is not sent.
-  const reply = async (question: Question, answer: Answer | null): Promise<ReplyOutcome> => {
+  // An answer uses the saved draft, so unsaved edits are saved first; if that fails, or the form
+  // has errors, the action does not start.
+  const saveFirst = async (): Promise<SaveFirstOutcome> => {
     if (!(await form.trigger())) {
       // On a phone the marked fields sit in the hidden editor panel.
       choose('edit')
@@ -101,6 +101,12 @@ export function DraftEditor({
         return 'not-saved'
       }
     }
+    return 'saved'
+  }
+
+  const reply = async (question: Question, answer: Answer | null): Promise<ReplyOutcome> => {
+    const outcome = await saveFirst()
+    if (outcome !== 'saved') return outcome
     onSend(question.id, answer)
     return 'sent'
   }

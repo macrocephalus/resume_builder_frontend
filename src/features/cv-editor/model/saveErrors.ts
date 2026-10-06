@@ -1,6 +1,12 @@
 import { ApiError } from '@/shared/api/ApiError'
 import { errorText } from '@/shared/api/errorText'
 
+/**
+ * How saving the form before another action ended: saved or nothing to save, the form has
+ * errors, or the save failed.
+ */
+export type SaveFirstOutcome = 'saved' | 'invalid' | 'not-saved'
+
 /** The save was refused because the CV changed since this tab loaded it. */
 export const isVersionConflict = (error: unknown) =>
   error instanceof ApiError && error.code === 'VERSION_CONFLICT'
