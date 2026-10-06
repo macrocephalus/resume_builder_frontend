@@ -122,12 +122,16 @@ export const cvHandlers = [
 
     const result = updateDb((db) => {
       runWorker(db.cvs, now)
+      // A CV for another role reuses the source of the one it starts from. The mock keeps no
+      // source text or facts, so what it copies is where the source came from.
+      let source = { sourceType, sourceFilename: sourceFilename ?? null }
       if (fromCvId) {
         const parent = ownEntries(db, user.id).find((entry) => entry.cv.id === fromCvId)
         if (!parent) return notFound()
         if (!hasDraft(parent.cv.status)) {
           return errorResponse(409, 'INVALID_STATE', 'That CV has no draft to start from.')
         }
+        source = { sourceType: parent.cv.sourceType, sourceFilename: parent.cv.sourceFilename }
       }
       const limited = limitResponse(db, user.id, now)
       if (limited) return limited
@@ -137,8 +141,7 @@ export const cvHandlers = [
         targetRole,
         roleContext: roleContext ?? null,
         language,
-        sourceType,
-        sourceFilename: sourceFilename ?? null,
+        ...source,
         createdAt: new Date(now).toISOString(),
         updatedAt: new Date(now).toISOString(),
       })

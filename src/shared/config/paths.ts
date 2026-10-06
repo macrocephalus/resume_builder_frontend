@@ -32,12 +32,21 @@ function withNext(path: string, next: string | null | undefined): string {
   return target && target !== routes.cvList ? `${path}?next=${encodeURIComponent(target)}` : path
 }
 
+/** The search params of New CV that start a CV from another one: its id and the role. */
+export const newCvParams = { fromCvId: 'fromCvId', role: 'role' } as const
+
 /** Links and redirect targets. */
 export const paths = {
   cvList: () => routes.cvList,
   login: (next?: string | null) => withNext(routes.login, next),
   signup: (next?: string | null) => withNext(routes.signup, next),
-  newCv: () => routes.newCv,
+  newCv: (from?: { fromCvId: string; role: string }) =>
+    from
+      ? `${routes.newCv}?${new URLSearchParams({
+          [newCvParams.fromCvId]: from.fromCvId,
+          [newCvParams.role]: from.role,
+        })}`
+      : routes.newCv,
   cv: (id: string) => generatePath(routes.cv, { cvId: id }),
 }
 

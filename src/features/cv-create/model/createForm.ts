@@ -1,7 +1,8 @@
 import { API_LIMITS, type createCvBodySchema } from '@cv/shared'
-import type { z } from 'zod'
+import { z } from 'zod'
 import { ApiError } from '@/shared/api/ApiError'
 import { errorText } from '@/shared/api/errorText'
+import { newCvParams } from '@/shared/config/paths'
 import { formatWait } from '@/shared/lib/format'
 
 /** 20000 as "20 000". */
@@ -38,6 +39,21 @@ export const SOURCE_TEXT_MAX = API_LIMITS.sourceText.max
 /** The length rule of the experience text, as the hint says it. */
 export const sourceTextLimits = `${API_LIMITS.sourceText.min} to ${formatCount(API_LIMITS.sourceText.max)} characters`
 
+/** What New CV starts from: another CV and a role ("Also fits"), or nothing. */
+export type Prefill = { fromCvId: string | null; role: string }
+
+/**
+ * Reads the prefill from the URL. It came from a link, so it is checked: a parent that is not a
+ * CV id is dropped, and the role is only a starting value, cut to what the contract allows.
+ */
+export function readPrefill(params: URLSearchParams): Prefill {
+  const fromCvId = z.uuid().safeParse(params.get(newCvParams.fromCvId))
+  return {
+    fromCvId: fromCvId.success ? fromCvId.data : null,
+    role: (params.get(newCvParams.role) ?? '').trim().slice(0, API_LIMITS.targetRole.max),
+  }
+}
+
 /** Where a failed create is shown: next to a field, or above the submit button. */
 export type CreateFailure = { field: CreateField | null; message: string }
 
@@ -58,6 +74,17 @@ export function createFailure(error: unknown): CreateFailure {
       return {
         field: null,
         message: `You have used all ${limit(error, 10)} generations for this hour. Try again in ${formatWait(error.retryAfter)}.`,
+      }
+    // Only a create from another CV names one: it was deleted, or its generation is not done.
+    case 'NOT_FOUND':
+      return {
+        field: null,
+        message: 'The CV you started from is gone. Start a new CV with your own text instead.',
+      }
+    case 'INVALID_STATE':
+      return {
+        field: null,
+        message: 'The CV you started from has no draft yet. Try again when it is done.',
       }
     case 'INPUT_TOO_LARGE':
       return { field: 'sourceText', message: error.message }

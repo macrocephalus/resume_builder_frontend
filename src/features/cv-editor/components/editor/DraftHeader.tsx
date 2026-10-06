@@ -9,6 +9,7 @@ import { Notice } from '@/shared/ui/Notice'
 import { Panel } from '@/shared/ui/Panel'
 import { StatusPill } from '@/entities/cv/components/StatusPill'
 import { DeleteCv } from '@/features/cv-editor/components/DeleteCv'
+import { AlsoFits } from '@/features/cv-editor/components/editor/AlsoFits'
 import { LiveMatchBar } from '@/features/cv-editor/components/match/LiveMatchBar'
 import { DownloadPdf } from '@/features/cv-editor/components/pdf/DownloadPdf'
 import type { DraftFormValues } from '@/features/cv-editor/model/draftForm'
@@ -29,8 +30,8 @@ type DraftHeaderProps = {
 }
 
 /**
- * The editable title, the status and target role, the match bar, the fact-check and conflict
- * notices, Download PDF and Delete.
+ * The editable title, the status and target role, the match bar, the roles it also fits, the
+ * fact-check and conflict notices, Download PDF and Delete.
  */
 export function DraftHeader({
   cv,
@@ -58,6 +59,7 @@ export function DraftHeader({
         {open > 0 ? <span>{open === 1 ? '1 open question' : `${open} open questions`}</span> : null}
       </MetaLine>
       {cv.requirements.length > 0 ? <LiveMatchBar requirements={cv.requirements} /> : null}
+      <AlsoFits cv={cv} />
       {cv.verification ? <Notice>{verificationText(cv.verification)}</Notice> : null}
       {conflict ? (
         <Notice

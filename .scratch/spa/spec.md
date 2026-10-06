@@ -398,7 +398,7 @@ generation progress, the editor with questions and preview, and PDF download.
 |---|---|---|
 | login, sign-up | auth form | redirect to My CVs if already signed in |
 | `/` | My CVs | protected layout ensures the current user; a 401 redirects to login with `next` |
-| `/cvs/new` | New CV (prefill from `fromCvId` + `role` in the second layer) | — |
+| `/cvs/new` | New CV (prefill from `fromCvId` + `role` in the second layer) | with `fromCvId`, ensures that CV (not own → Not found) |
 | `/cvs/:cvId` | CV, with content chosen by status group | ensures the CV detail |
 | anything else | Not found | — |
 

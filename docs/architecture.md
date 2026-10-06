@@ -60,9 +60,10 @@ src/
     cv-list/
       components/              CvListScreen, the row, the empty state
     cv-create/
-      components/              CvCreateScreen, the PDF upload
-      api/                     useCreateCv, useIngestPdf, usage query
-      model/                   form schema, error-code texts, session-storage autosave
+      components/              CvCreateScreen, the form (plain or from another CV), the PDF upload
+      api/                     useCreateCv, useIngestPdf, parentCvQuery, usage query
+      model/                   form schema, the ?fromCvId=&role= prefill, error-code texts,
+                               session-storage autosave
     cv-editor/                 the CV screen (see the glossary)
       components/
         CvScreen.tsx           picks the panel by status group
@@ -179,7 +180,7 @@ Every feature and every entity uses the same three segments, created when first 
 | `/signup` | `signup.tsx` | `auth` → `SignupScreen` | signed in → redirect to My CVs |
 | — | `protected.tsx` | `ProtectedLayout` | ensures the current user; `401` → login with `next` |
 | `/` | `cv-list.tsx` | `cv-list` → `CvListScreen` | ensures the CV list |
-| `/cvs/new` | `cv-new.tsx` | `cv-create` → `CvCreateScreen` | — |
+| `/cvs/new` | `cv-new.tsx` | `cv-create` → `CvCreateScreen` | with `?fromCvId=`, ensures that CV (not own → Not found) |
 | `/cvs/:cvId` | `cv.tsx` | `cv-editor` → `CvScreen` | ensures the CV detail |
 | `*` | `not-found.tsx` | `NotFound` (`app/layout`) | — (a child of `protected`) |
 

@@ -34,3 +34,15 @@ describe('paths.login', () => {
     expect(paths.login('//evil.example')).toBe('/login')
   })
 })
+
+describe('paths.newCv', () => {
+  test('is the plain form without a parent CV', () => {
+    expect(paths.newCv()).toBe('/cvs/new')
+  })
+
+  test('carries the parent CV and the role to prefill', () => {
+    expect(paths.newCv({ fromCvId: 'a1', role: 'Node.js Tech Lead' })).toBe(
+      '/cvs/new?fromCvId=a1&role=Node.js+Tech+Lead',
+    )
+  })
+})
