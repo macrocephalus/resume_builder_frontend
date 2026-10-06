@@ -1,6 +1,7 @@
 import { findMissing, ITEM_SECTIONS, type CvSection, type ItemSection } from '@cv/shared'
 import { ApiError } from '@/shared/api/ApiError'
 import { errorText } from '@/shared/api/errorText'
+import { formatList } from '@/shared/lib/format'
 import { itemBlocks, sectionTitles } from '@/features/cv-editor/model/blocks'
 import { toCvData, type DraftFormValues } from '@/features/cv-editor/model/draftForm'
 import type { SaveFirstOutcome } from '@/features/cv-editor/model/saveErrors'
@@ -24,10 +25,6 @@ export function downloadErrorText(error: unknown): string {
 
 const isItemSection = (section: CvSection): section is ItemSection =>
   (ITEM_SECTIONS as readonly string[]).includes(section)
-
-/** "company", "company and period", "title, company and period". */
-const joinAsList = (names: string[]) =>
-  names.length < 2 ? names.join('') : `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`
 
 /**
  * What the PDF of these values will lack, by the contract's missing rule (`findMissing`), in
@@ -53,7 +50,7 @@ export function pdfGaps(form: DraftFormValues): string[] {
           (block.fields.find((config) => config.name === name)?.label ?? name ?? '').toLowerCase(),
         )
       const number = form[section].findIndex((item) => item.itemId === itemId) + 1
-      gaps.push(`${joinAsList(fields)} of ${block.itemName.toLowerCase()} ${number}`)
+      gaps.push(`${formatList(fields)} of ${block.itemName.toLowerCase()} ${number}`)
     } else {
       gaps.push(sectionTitles[section].toLowerCase())
     }

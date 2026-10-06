@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { formatWait } from '@/shared/lib/format'
+import { formatList, formatWait } from '@/shared/lib/format'
 
 test.each([
   [1, '1 minute'],
@@ -9,4 +9,13 @@ test.each([
   [null, '1 minute'],
 ])('waits %s s as %s', (seconds, text) => {
   expect(formatWait(seconds)).toBe(text)
+})
+
+test.each([
+  [[], ''],
+  [['company'], 'company'],
+  [['company', 'period'], 'company and period'],
+  [['title', 'company', 'period'], 'title, company and period'],
+])('lists %j as %s', (items, text) => {
+  expect(formatList(items)).toBe(text)
 })

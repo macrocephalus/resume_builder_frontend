@@ -10,3 +10,8 @@ export function formatWait(seconds: number | null): string {
   const count = Math.max(1, Math.ceil((seconds ?? 60) / 60))
   return count === 1 ? '1 minute' : `${count} minutes`
 }
+
+/** Words joined into an English list: "company", "company and period", "a, b and c". */
+export function formatList(items: readonly string[]): string {
+  return items.length < 2 ? items.join('') : `${items.slice(0, -1).join(', ')} and ${items.at(-1)}`
+}
