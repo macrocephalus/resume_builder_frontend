@@ -8,6 +8,7 @@ import {
 } from '@cv/shared'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router'
 import { paths } from '@/shared/config/paths'
@@ -23,6 +24,8 @@ import { usageQuery } from '@/features/cv-create/api/usageQuery'
 import { PdfUpload } from '@/features/cv-create/components/PdfUpload'
 import { SourceCounter } from '@/features/cv-create/components/SourceCounter'
 import { UsageNote } from '@/features/cv-create/components/UsageNote'
+import { useAutosave } from '@/features/cv-create/components/useAutosave'
+import { loadSavedForm } from '@/features/cv-create/model/autosave'
 import {
   createFailure,
   createIssueText,
@@ -43,7 +46,9 @@ type CreateCvFormProps = {
  * The New CV form: the role, a note on it, the CV language and the experience text. Made from
  * another CV, it has no experience text: the new CV reuses that CV's source and facts.
  *
- * Create CV waits while the limits say a new CV cannot start.
+ * The plain form is kept in session storage while it is typed and restored on the next mount, so
+ * a reload loses nothing; a role from the URL wins over the kept one. Create CV waits while the
+ * limits say a new CV cannot start.
  */
 export function CreateCvForm({ role, parent }: CreateCvFormProps) {
   const navigate = useNavigate()
@@ -52,6 +57,8 @@ export function CreateCvForm({ role, parent }: CreateCvFormProps) {
     ...usageQuery(),
     select: (usage) => blockedText(usage) !== null,
   })
+  // Read on mount only; the form takes it as its starting values.
+  const [saved] = useState(() => (parent ? null : loadSavedForm()))
   const {
     register,
     control,
@@ -59,6 +66,7 @@ export function CreateCvForm({ role, parent }: CreateCvFormProps) {
     setValue,
     handleSubmit,
     setError,
+    watch,
     formState: { errors },
   } = useForm<CreateFormInput, unknown, CreateCvBody>({
     resolver: zodResolver(createCvBodySchema, { error: createIssueText }),
@@ -78,9 +86,11 @@ export function CreateCvForm({ role, parent }: CreateCvFormProps) {
           sourceText: '',
           sourceType: 'text',
           sourceFilename: null,
-          targetRole: role,
+          ...saved,
+          targetRole: role || saved?.targetRole || '',
         },
   })
+  useAutosave(watch, !parent)
 
   const submit = handleSubmit(({ roleContext, sourceType, sourceFilename, ...body }) =>
     create.mutate(

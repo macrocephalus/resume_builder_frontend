@@ -323,7 +323,7 @@ Context or a store.
 | Which screen, which CV | the URL path | `/cvs/:cvId` |
 | A view choice a reload must keep | a URL search param, written with `replace` | `?tab=questions` on the CV screen; `?next=` on login; `?fromCvId=&role=` on New CV |
 | Form values and dirty state | React Hook Form | the editor, the New CV form |
-| An unsent form that must survive a reload | `sessionStorage`, read once on mount | New CV autosave |
+| An unsent form that must survive a reload | `sessionStorage`, read once on mount | New CV autosave (`model/autosave.ts`): saved through a `watch` callback, parsed back with a schema, cleared by `useCreateCv` after a create, even if the form is gone by then; every storage call is guarded, so blocked storage only means nothing is kept. The form from another CV is not kept |
 | Anything else in the UI | `useState` in the component that uses it | the two-step delete confirm, show / hide password |
 
 There is no global store. Context is not used for app state; the current user is read from the

@@ -1,7 +1,7 @@
-import { screen } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
-import { describe, expect, test } from 'vitest'
+import { describe, expect, onTestFinished, test, vi } from 'vitest'
 import { seedCv } from '@/mocks/fixtures/cv'
 import { exhaustHourlyLimit } from '@/mocks/handlers/cvs'
 import { server } from '@/mocks/server'
@@ -13,6 +13,19 @@ const SOURCE =
 
 const signedIn = () => seedUser('ann@example.com', 'correct-horse', { signedIn: true })
 const create = () => screen.getByRole('button', { name: 'Create CV' })
+
+/** The bodies of the creates the app sends during the test. */
+function createBodies() {
+  const bodies: Record<string, unknown>[] = []
+  const listener = async ({ request }: { request: Request }) => {
+    if (request.method === 'POST' && new URL(request.url).pathname === '/api/cvs') {
+      bodies.push(await request.clone().json())
+    }
+  }
+  server.events.on('request:start', listener)
+  onTestFinished(() => server.events.removeListener('request:start', listener))
+  return bodies
+}
 
 async function fillForm() {
   const user = userEvent.setup()
@@ -77,5 +90,80 @@ describe('New CV limits', () => {
     await user.click(create())
 
     expect(await screen.findByRole('heading', { name: 'Platform Engineer' })).toBeVisible()
+  })
+})
+
+describe('New CV autosave', () => {
+  test('an unsent form survives a reload', async () => {
+    signedIn()
+    renderApp('/cvs/new')
+    await fillForm()
+
+    renderApp('/cvs/new')
+
+    expect(await screen.findByLabelText('Target role')).toHaveValue('Platform Engineer')
+    expect(screen.getByLabelText('About the role (optional)')).toHaveValue('Kubernetes, on call')
+    expect(screen.getByLabelText('CV language')).toHaveValue('pl')
+    expect(screen.getByLabelText('Your experience')).toHaveValue(SOURCE)
+  })
+
+  test('a created CV leaves an empty form behind', async () => {
+    signedIn()
+    renderApp('/cvs/new')
+    const user = await fillForm()
+    await user.click(create())
+    await screen.findByRole('heading', { name: 'Platform Engineer' })
+
+    renderApp('/cvs/new')
+
+    expect(await screen.findByLabelText('Target role')).toHaveValue('')
+    expect(screen.getByLabelText('Your experience')).toHaveValue('')
+  })
+
+  test('a text from a PDF still counts as one after a reload', async () => {
+    signedIn()
+    const bodies = createBodies()
+    renderApp('/cvs/new')
+    const user = userEvent.setup({ applyAccept: false })
+    await user.upload(
+      await screen.findByLabelText('Upload PDF'),
+      new File(['%PDF-1.7 a CV'], 'olena-cv.pdf', { type: 'application/pdf' }),
+    )
+    await waitFor(() => expect(screen.getByLabelText('Your experience')).not.toHaveValue(''))
+
+    renderApp('/cvs/new')
+    await user.type(await screen.findByLabelText('Target role'), 'Platform Engineer')
+    await user.click(create())
+
+    await screen.findByRole('heading', { name: 'Platform Engineer' })
+    expect(bodies[0]).toMatchObject({ sourceType: 'pdf', sourceFilename: 'olena-cv.pdf' })
+  })
+
+  test('a role in the link wins over the kept one', async () => {
+    signedIn()
+    renderApp('/cvs/new')
+    await fillForm()
+
+    renderApp('/cvs/new?role=SRE')
+
+    expect(await screen.findByLabelText('Target role')).toHaveValue('SRE')
+    expect(screen.getByLabelText('Your experience')).toHaveValue(SOURCE)
+  })
+
+  test('a blocked storage never breaks the form', async () => {
+    signedIn()
+    // A browser that refuses storage throws on the very access to it.
+    const blocked = vi.spyOn(window, 'sessionStorage', 'get').mockImplementation(() => {
+      throw new DOMException('Blocked', 'SecurityError')
+    })
+    try {
+      renderApp('/cvs/new')
+      const user = await fillForm()
+      await user.click(create())
+
+      expect(await screen.findByRole('heading', { name: 'Platform Engineer' })).toBeVisible()
+    } finally {
+      blocked.mockRestore()
+    }
   })
 })

@@ -21,6 +21,8 @@ afterEach(() => {
   cleanup()
   server.resetHandlers()
   resetDb()
+  // The New CV form keeps itself here; a test starts with an empty form.
+  sessionStorage.clear()
 })
 
 afterAll(() => server.close())
