@@ -136,7 +136,7 @@ a `Badge` or `Tag` next to `Pill`.
 | `Field` | label + hint + error around one control; wires `id` / `aria-describedby` / `aria-invalid` | — |
 | `Input`, `Textarea`, `Select` | `Select` is native `<select>`; `Input` `look`: `field` · `title` (an editable heading, framed on hover and focus) | — |
 | `Pill` | `tone` | — |
-| `Chip` | removable (skills) or a toggle with `pressed` (answer options) | — |
+| `Chip` | removable (skills), a toggle with `pressed` (answer options) or a link with `to` ("Also fits" roles) | — |
 | `Disclosure` | a solid panel that opens on a click, a native `<details>` ("Answered (N)") | — |
 | `Fieldset` | a group of fields with a small legend and a line above every group but the first (one item of a list) | — |
 | `Panel` | solid content card | — |
