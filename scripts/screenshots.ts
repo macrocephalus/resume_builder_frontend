@@ -87,6 +87,16 @@ const screens: Screen[] = [
     },
   },
   {
+    name: 'new-cv-from-cv',
+    path: '/',
+    signedIn: true,
+    act: async (page) => {
+      await page.getByRole('link', { name: 'Open' }).first().click()
+      await page.getByRole('list', { name: 'Also fits' }).getByRole('link').first().click()
+      await page.getByLabel('Target role').waitFor()
+    },
+  },
+  {
     name: 'cv-preview',
     path: '/',
     signedIn: true,
