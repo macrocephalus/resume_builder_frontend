@@ -63,19 +63,22 @@ export const activeCount = (db: MockDb, userId: string) =>
 
 const byNewest = (a: Cv, b: Cv) => b.updatedAt.localeCompare(a.updatedAt)
 
-/** Starting a generation (create or retry) counts toward both limits; `null` when it may start. */
+/**
+ * Starting a generation (create or retry) counts toward both limits; `null` when it may start.
+ * With both reached the hourly one answers, as the API checks it first.
+ */
 function limitResponse(db: MockDb, userId: string, now: number) {
-  if (activeCount(db, userId) >= GENERATION_LIMITS.active) {
-    return errorResponse(429, 'TOO_MANY_ACTIVE', 'Four CVs are already being generated.', {
-      details: { limit: GENERATION_LIMITS.active },
-    })
-  }
   const recent = recentGenerations(db, userId, now)
   if (recent.length >= GENERATION_LIMITS.perHour) {
     const oldest = Math.min(...recent)
     return errorResponse(429, 'RATE_LIMITED', 'The hourly generation limit is reached.', {
       details: { limit: GENERATION_LIMITS.perHour },
       headers: { 'Retry-After': String(Math.ceil((oldest + HOUR - now) / 1000)) },
+    })
+  }
+  if (activeCount(db, userId) >= GENERATION_LIMITS.active) {
+    return errorResponse(429, 'TOO_MANY_ACTIVE', 'Four CVs are already being generated.', {
+      details: { limit: GENERATION_LIMITS.active },
     })
   }
   return null

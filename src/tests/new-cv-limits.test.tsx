@@ -82,6 +82,24 @@ describe('New CV limits', () => {
     expect(create()).toBeDisabled()
   })
 
+  test('with both limits reached the hourly one is named, and mock mode refuses with it first', async () => {
+    const ann = signedIn()
+    exhaustHourlyLimit(ann.id)
+    for (let i = 0; i < 4; i += 1) seedCv(ann, 'queued')
+    renderApp('/cvs/new')
+
+    expect(
+      await screen.findByText(/^You have used all 10 generations for this hour\. The next one/),
+    ).toBeVisible()
+    const response = await fetch(new URL('/api/cvs', window.location.origin), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ targetRole: 'Platform Engineer', sourceText: SOURCE }),
+    })
+    expect(response.status).toBe(429)
+    expect(await response.json()).toMatchObject({ error: { code: 'RATE_LIMITED' } })
+  })
+
   test('when the limits cannot be loaded, the form still works', async () => {
     signedIn()
     server.use(http.get('/api/usage', () => HttpResponse.error()))
