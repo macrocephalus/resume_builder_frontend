@@ -158,6 +158,24 @@ describe('generation', () => {
     expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
   })
 
+  test('the questions of a draft come in the CV language', async () => {
+    signedIn()
+    renderApp('/cvs/new')
+    const user = setupUser()
+    await user.selectOptions(await screen.findByLabelText('CV language'), 'uk')
+    await createCv('Senior Backend Engineer', user)
+    await screen.findByText('Starting soon')
+
+    await wait(18000)
+    await user.click(await screen.findByRole('button', { name: /^Questions/ }))
+
+    expect(
+      await screen.findByRole('region', {
+        name: 'Який номер телефону дати роботодавцям? Достатньо пошти або телефону.',
+      }),
+    ).toBeVisible()
+  })
+
   test('a reload during generation loses nothing', async () => {
     signedIn()
     renderApp('/cvs/new')

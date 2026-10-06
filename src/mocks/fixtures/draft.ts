@@ -1,4 +1,11 @@
-import { DEFAULT_SECTION_ORDER, type CvData, type Question, type Requirement } from '@cv/shared'
+import {
+  autoQuestionText,
+  DEFAULT_SECTION_ORDER,
+  type CvData,
+  type CvLanguage,
+  type Question,
+  type Requirement,
+} from '@cv/shared'
 
 /** What the fake worker writes when a generation succeeds. */
 export type GeneratedDraft = {
@@ -16,9 +23,16 @@ export type GeneratedDraft = {
 
 /**
  * One English backend-engineer CV with all eight blocks. With `withQuestions` it also has one open
- * question of each kind; the fields they ask about are left empty in the draft.
+ * question of each kind; the fields they ask about are left empty in the draft. The auto question
+ * is worded in the CV language by the shared `autoQuestionText`, as the API words it.
  */
-export function generatedDraft({ withQuestions }: { withQuestions: boolean }): GeneratedDraft {
+export function generatedDraft({
+  withQuestions,
+  language = 'en',
+}: {
+  withQuestions: boolean
+  language?: CvLanguage
+}): GeneratedDraft {
   const job = crypto.randomUUID()
   const english = crypto.randomUUID()
 
@@ -100,15 +114,14 @@ export function generatedDraft({ withQuestions }: { withQuestions: boolean }): G
         question({
           kind: 'text',
           origin: 'auto',
-          text: 'What phone number should employers use?',
-          label: 'Phone',
+          ...autoQuestionText(data, { section: 'contacts', field: 'phone' }, language),
           options: [],
           claim: null,
           target: { section: 'contacts', field: 'phone' },
         }),
         question({
           kind: 'choice',
-          origin: 'auto',
+          origin: 'model',
           text: 'What is your level of English?',
           label: 'English',
           options: ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'Native'],

@@ -109,7 +109,10 @@ function finish(entry: MockCv, job: MockJob): void {
       error: 'The AI service is unavailable right now. Try again in a few minutes.',
     }
   } else {
-    const draft = generatedDraft({ withQuestions: job.scenario !== 'ready' })
+    const draft = generatedDraft({
+      withQuestions: job.scenario !== 'ready',
+      language: entry.cv.language,
+    })
     entry.cv = {
       ...entry.cv,
       ...draft,

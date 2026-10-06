@@ -12,7 +12,7 @@ import { wideScreen } from '@/tests/wideScreen'
 
 const signedIn = () => seedUser('ann@example.com', 'correct-horse', { signedIn: true })
 
-const PHONE = 'What phone number should employers use?'
+const PHONE = 'What phone number should employers use? An email or a phone number is enough.'
 const ENGLISH = 'What is your level of English?'
 const SKILLS = 'Which of these have you worked with? Only what you tick goes into the CV.'
 const CLAIM = 'Your text does not say this. Should it stay in the CV?'

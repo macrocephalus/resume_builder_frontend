@@ -374,7 +374,8 @@ Why it is built this way: [ADR 0003](adr/0003-mock-mode-outside-the-layers.md).
   (no `revising`), the default is revised once (`verifying` → `revising` → `verifying`) and ends
   with questions, `retry` fails its first attempt and succeeds after `retrying`, `fail` fails all
   three attempts with a doubling wait between them; a retried `fail` CV succeeds. A generation
-  takes 9 to 20 s.
+  takes 9 to 20 s. The draft is always the same English CV; its auto question is worded in the
+  CV language by the contract's `autoQuestionText`, as the API words it.
   A word in an uploaded PDF's name picks what it holds: `scan` no text (`422`), `long` more text
   than a CV can start from, `short` less; any other PDF gives the sample CV text.
 - **Honesty.** Every mock response goes through the same contract schemas in the API client, so a
