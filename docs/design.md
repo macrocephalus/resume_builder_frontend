@@ -149,7 +149,7 @@ a `Badge` or `Tag` next to `Pill`.
 | `ConfirmButton` | two-step inline confirm (delete) | — |
 | `SegmentedControl` | tabs: Edit · Questions N · Match · Preview; a `fieldset` of `aria-pressed` buttons; `block` for full width | **yes** |
 | `Sheet` | the white A4 preview page in Liberation Sans; at least A4 tall, grows with content; the text inside takes classes from `sheetText.ts` (name, contacts, heading, item, meta, bullets), sized in `cqw` like the PDF | — |
-| `FloatingBar` | sticky bottom bar with `env(safe-area-inset-bottom)` (save bar shell) | **yes** |
+| `FloatingBar` | sticky bottom bar with `env(safe-area-inset-bottom)`; `place: edge` (the save bar) · `above-bar` (the apply bar, 84 px up: the save bar's height and gap, so both can show) | **yes** |
 | `GlassCard` | auth card | **yes** |
 
 `src/app/layout/` holds the **TopBar** (glass, sticky, with the navigation progress line) and the
