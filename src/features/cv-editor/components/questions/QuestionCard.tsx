@@ -1,50 +1,64 @@
 import type { Answer, Question } from '@cv/shared'
-import { useId, useState, useTransition } from 'react'
+import { useId } from 'react'
 import { Button } from '@/shared/ui/Button'
 import { MetaLine } from '@/shared/ui/MetaLine'
 import { Notice } from '@/shared/ui/Notice'
 import { Panel } from '@/shared/ui/Panel'
 import { AnswerControls } from '@/features/cv-editor/components/questions/AnswerControls'
 import { answerBody, questionTarget, type AnswerDraft } from '@/features/cv-editor/model/questions'
-import { notSentText, type ReplyOutcome } from '@/features/cv-editor/model/replies'
+import { replySummary } from '@/features/cv-editor/model/replies'
 
 type QuestionCardProps = {
   question: Question
-  /** Saves unsaved edits first, then sends the answer, or skips with `null`. */
-  onReply: (question: Question, answer: Answer | null) => Promise<ReplyOutcome>
-  /** Its answer or skip is on the way. */
-  sending: boolean
-  /** Another reply or a save is on the way: one thing at a time. */
+  /** Its reply so far: an answer, a skip (`null`) or none yet (`undefined`). */
+  reply: Answer | null | undefined
+  /** Marks the card replied with an answer, or skipped with `null`; nothing is sent. */
+  onReply: (answer: Answer | null) => void
+  /** Opens a replied card again, with its draft as it was. */
+  onChange: () => void
+  /** A save or the batch is on the way: the card waits. */
   locked: boolean
   /** What the card holds so far; kept above the form, so a remount after a save keeps it. */
   draft: AnswerDraft
   onDraftChange: (draft: AnswerDraft) => void
-  /** Why its last answer or skip failed. */
+  /** Why the server refused its reply in the last batch. */
   error: string | null
 }
 
-/** One open question: what it is about, the answer controls, Answer and Skip. */
+/**
+ * One open question: what it is about, the answer controls, Answer and Skip. Once replied it
+ * folds to one line — the target, the reply in short and Change — until the batch is applied.
+ */
 export function QuestionCard({
   question,
+  reply,
   onReply,
-  sending,
+  onChange,
   locked,
   draft,
   onDraftChange,
   error,
 }: QuestionCardProps) {
   const headingId = useId()
-  const [notSent, setNotSent] = useState<string | null>(null)
-  const [saving, startSaving] = useTransition()
-  const busy = sending || saving || locked
   const answer = answerBody(question, draft)
 
-  const reply = (body: Answer | null) =>
-    startSaving(async () => {
-      setNotSent(null)
-      const outcome = await onReply(question, body)
-      if (outcome !== 'sent') setNotSent(notSentText[outcome])
-    })
+  if (reply !== undefined) {
+    return (
+      <Panel
+        aria-labelledby={headingId}
+        className="flex flex-wrap items-center gap-x-3 gap-y-1 py-1.5 pr-1.5 pl-4"
+      >
+        <h3 id={headingId} className="sr-only">
+          {question.text}
+        </h3>
+        <MetaLine>{questionTarget(question)}</MetaLine>
+        <p className="min-w-0 grow break-words">{replySummary(reply)}</p>
+        <Button variant="ghost" size="sm" disabled={locked} onClick={onChange}>
+          Change
+        </Button>
+      </Panel>
+    )
+  }
 
   return (
     <Panel aria-labelledby={headingId} className="flex flex-col gap-3 p-4">
@@ -58,16 +72,16 @@ export function QuestionCard({
           <div className="flex flex-wrap gap-2">
             <Button
               size="sm"
-              pending={busy}
-              onClick={() => reply({ kind: 'confirm', value: true })}
+              disabled={locked}
+              onClick={() => onReply({ kind: 'confirm', value: true })}
             >
               Yes, add it
             </Button>
             <Button
               variant="secondary"
               size="sm"
-              disabled={busy}
-              onClick={() => reply({ kind: 'confirm', value: false })}
+              disabled={locked}
+              onClick={() => onReply({ kind: 'confirm', value: false })}
             >
               No
             </Button>
@@ -79,21 +93,20 @@ export function QuestionCard({
           <div className="flex flex-wrap gap-2">
             <Button
               size="sm"
-              pending={busy}
-              disabled={!answer}
-              onClick={() => answer && reply(answer)}
+              disabled={locked || !answer}
+              onClick={() => answer && onReply(answer)}
             >
               Answer
             </Button>
-            <Button variant="ghost" size="sm" disabled={busy} onClick={() => reply(null)}>
+            <Button variant="ghost" size="sm" disabled={locked} onClick={() => onReply(null)}>
               Skip
             </Button>
           </div>
         </>
       )}
-      {(notSent ?? error) ? (
+      {error ? (
         <Notice tone="bad" role="alert">
-          {notSent ?? error}
+          {error}
         </Notice>
       ) : null}
     </Panel>

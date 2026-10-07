@@ -24,7 +24,7 @@ spec.
     polling, not by navigation.
   - In the editor, solid panels cover most of the backdrop. That is expected.
 - **Glass:** frosted glass (no refraction) **only on the glass layer**. That is the top bar, the
-  tab switcher, the save bar and the auth card.
+  tab switcher, the save bar, the apply bar and the auth card.
   - Content, panels, inputs and the A4 preview sheet stay solid.
   - At most 3–4 glass surfaces on screen at once.
   - Glass is never animated (no animated blur).
@@ -169,13 +169,14 @@ our own; sizes 16 / 20; decorative icons get `aria-hidden`.
 - **≥ 980 px:** two columns. Editor on the left (`1.08fr`); side panel on the right (`.92fr`)
   with the Questions / Match / Preview tabs. The Preview panel sticks under the top bar and
   scrolls on its own, so the one A4 sheet stays in view next to a long editor; the Questions
-  panel scrolls with the page, so no card is cut at the bottom of the screen. The tabs show here only when there is more than one side panel (Preview alone
+  panel scrolls with the page, so no card is cut at the bottom of the screen, and its apply bar
+  sticks above the save bar's place while a card is replied. The tabs show here only when there is more than one side panel (Preview alone
   needs no switch), and offer the side panels only: the editor is always there.
 - **< 980 px:** one column.
   - The `SegmentedControl` (Edit · Questions N · Match · Preview) spans the width and sticks
     right under the top bar, with no gap for content to show through; one panel shows at a time.
-  - The save bar sticks to the bottom.
-  - Three glass surfaces in total: top bar, tabs, save bar.
+  - The save bar sticks to the bottom; on the Questions tab the apply bar sticks above its place.
+  - Three to four glass surfaces in total: top bar, tabs, save bar, apply bar.
 - List rows stack below 760 px.
 
 ## States
@@ -189,7 +190,8 @@ our own; sizes 16 / 20; decorative icons get `aria-hidden`.
   its error next to the control that triggered it.
 - **Empty:** `EmptyState` says what to do next.
 - **No toasts:**
-  - "Saved ✓" appears in the save bar.
+  - "Saved ✓" appears in the save bar; "Updating your CV…" and "N replies applied" in the
+    Questions panel (`aria-live="polite"`).
   - A version conflict is a `Notice` in the CV header with "Reload latest".
 - **Generation in progress:**
   - A solid `Panel` with the stage text and an indeterminate bar, over the drifting backdrop.

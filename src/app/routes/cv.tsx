@@ -1,4 +1,4 @@
-import type { QueryClient } from '@tanstack/react-query'
+import { useQuery, type QueryClient } from '@tanstack/react-query'
 import { useParams, type LoaderFunctionArgs } from 'react-router'
 import { RouteError } from '@/app/layout/RouteError'
 import { authQueries } from '@/features/auth/api/authQueries'
@@ -16,8 +16,12 @@ export const loader =
 
 export function Component() {
   const { cvId = '' } = useParams()
+  // Replies not applied yet are kept per user, so the screen needs to know whose they are.
+  const { data: userId } = useQuery({ ...authQueries.me(), select: (user) => user?.id ?? null })
+  // An anonymous visitor is on the way to login (the protected loader): nothing to show meanwhile.
+  if (!userId) return null
   // Keyed by id, so moving to another CV starts its screen afresh.
-  return <CvScreen key={cvId} cvId={cvId} />
+  return <CvScreen key={cvId} cvId={cvId} userId={userId} />
 }
 
 export const ErrorBoundary = RouteError

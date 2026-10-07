@@ -1,4 +1,4 @@
-import type { Answer, Cv, PatchCvBody, Question } from '@cv/shared'
+import type { Cv, PatchCvBody } from '@cv/shared'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { FormProvider, useForm, useWatch } from 'react-hook-form'
 import { cx } from '@/shared/lib/cx'
@@ -33,8 +33,8 @@ type DraftEditorProps = {
   onReload: () => void
   /** Drops the unsaved changes by mounting a fresh form. */
   onDiscard: () => void
-  /** Sends an answer, or a skip with `null`. */
-  onSend: (questionId: string, answer: Answer | null) => void
+  /** Sends every replied card in one request. */
+  onApply: () => void
   replies: ReplyState
   pdf: ReturnType<typeof useDownloadPdf>
   /** Fetches the PDF of the saved draft. */
@@ -46,7 +46,7 @@ type DraftEditorProps = {
  * version from the server mounts a fresh form; nothing syncs the values by hand. Cancel mounts a
  * fresh form too: `reset()` relies on inputs registering again on render, which React Compiler
  * skips. Nothing here reads form state but the block order, so typing does not re-render the
- * editor. While a save runs the fields are disabled: the answer remounts the form, which would
+ * editor. While a save runs the fields are disabled: its answer remounts the form, which would
  * drop what was typed.
  *
  * Below 980 px one panel shows at a time, picked by the `?tab=` param; the editor stays mounted
@@ -61,7 +61,7 @@ export function DraftEditor({
   reloadError,
   onReload,
   onDiscard,
-  onSend,
+  onApply,
   replies,
   pdf,
   onDownload,
@@ -92,7 +92,7 @@ export function DraftEditor({
     () => choose('edit'),
   )
 
-  // An answer and the PDF use the saved draft, so unsaved edits are saved first; if that fails,
+  // The replies and the PDF use the saved draft, so unsaved edits are saved first; if that fails,
   // or the form has errors, the action does not start.
   const saveFirst = async (): Promise<SaveFirstOutcome> => {
     if (!(await form.trigger())) {
@@ -111,10 +111,10 @@ export function DraftEditor({
     return 'saved'
   }
 
-  const reply = async (question: Question, answer: Answer | null): Promise<ReplyOutcome> => {
+  const apply = async (): Promise<ReplyOutcome> => {
     const outcome = await saveFirst()
     if (outcome !== 'saved') return outcome
-    onSend(question.id, answer)
+    onApply()
     return 'sent'
   }
 
@@ -124,9 +124,9 @@ export function DraftEditor({
     return outcome
   }
 
-  // A save or an answer brings a new version, which remounts the form: nothing typed meanwhile
-  // would survive, so the fields wait.
-  const busy = save.isPending || replies.sendingId !== null
+  // A save or an applied batch brings a new version, which remounts the form: nothing typed
+  // meanwhile would survive, so the fields wait.
+  const busy = save.isPending || replies.applying
 
   const panelSwitch =
     switchTabs.length > 0 ? (
@@ -185,7 +185,7 @@ export function DraftEditor({
             >
               {wide ? panelSwitch : null}
               {side === 'questions' ? (
-                <QuestionsPanel cv={cv} onReply={reply} replies={replies} saving={save.isPending} />
+                <QuestionsPanel cv={cv} replies={replies} onApply={apply} saving={save.isPending} />
               ) : side === 'match' ? (
                 <MatchPanel requirements={cv.requirements} />
               ) : (

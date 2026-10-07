@@ -6,13 +6,16 @@ import { DraftView } from '@/features/cv-editor/components/editor/DraftView'
 import { FailedPanel } from '@/features/cv-editor/components/progress/FailedPanel'
 import { ProgressPanel } from '@/features/cv-editor/components/progress/ProgressPanel'
 
-/** The CV screen: the panel is picked by the status group (docs/cv-statuses.md). */
-export function CvScreen({ cvId }: { cvId: string }) {
+/**
+ * The CV screen: the panel is picked by the status group (docs/cv-statuses.md). The user's id
+ * keys the replies the browser keeps for this CV.
+ */
+export function CvScreen({ cvId, userId }: { cvId: string; userId: string }) {
   const { data: cv } = useSuspenseQuery(cvQueries.detail(cvId))
   const inProgress = isInProgress(cv.status)
   useCvStatusPolling(inProgress ? [cv.id] : [])
 
   if (inProgress) return <ProgressPanel cv={cv} />
   if (cv.status === 'failed') return <FailedPanel cv={cv} />
-  return <DraftView cv={cv} />
+  return <DraftView cv={cv} userId={userId} />
 }

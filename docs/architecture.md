@@ -69,12 +69,13 @@ src/
         CvScreen.tsx           picks the panel by status group
         progress/              in-progress panel, failed panel
         editor/                has-draft layout, header, the form, blocks, save bar
-        questions/             questions panel and the cards by kind
+        questions/             questions panel, the cards by kind, the apply bar
         preview/               the A4 sheet (laid out by model/sheet.ts, like the PDF)
         match/                 match panel, the header's live match bar, useLiveMatch
         pdf/                   download button
-      api/                     useSaveCv, useAnswerQuestion, useSkipQuestion, useDownloadPdf
-      model/                   draft form schema, draft <-> form mapping, tab ids, error texts
+      api/                     useSaveCv, useApplyReplies, useDownloadPdf
+      model/                   draft form schema, draft <-> form mapping, tab ids, the replies
+                               of the cards (replies.ts), error texts
 
   entities/                    LAYER 3: what two or more features need about a domain object
     cv/
@@ -238,6 +239,11 @@ Context or a store.
 - **Mutations** that return the full CV write it into the detail cache with `setQueryData` and do
   not refetch. A mutation's error is shown next to the control that started it; there are no
   toasts.
+- **The replies** of the question cards go in one `POST /api/cvs/:id/replies`
+  (`useApplyReplies`): the body is checked with the contract's `repliesBodySchema` before it is
+  sent, the returned CV is stored like a save's. The server words the answers, so the request can
+  take seconds; the client sets no timeout of its own, the bar says the CV is being updated. A
+  `409` or `404` means a question closed elsewhere: the CV is refetched before the error is shown.
 - **Where a mutation lives:** in the feature that uses it. `useDeleteCv` and `useRetryCv` live in
   `entities/cv/api`, because both the list and the CV screen use them.
 - **Polling:** `useCvStatusPolling(ids)` runs the statuses request on plain `useQuery` with a 3 s
@@ -315,13 +321,23 @@ Context or a store.
   conflict notice with "Reload latest"; the save bar then offers no Save, which could only
   conflict again. A `413 INPUT_TOO_LARGE` (a draft over the API's body limit) asks to shorten the
   longest texts.
-- **Save before action.** Answer, skip and download save a dirty form first; a failed save stops
-  the action. Answer, skip and download mutations live in `DraftView`, above the form's key, like
-  the save: a save before them, or their own answer, brings a new version that remounts the form,
-  and their pending state, their errors and what each question card holds must outlive it. While
-  a save, an answer or a skip runs, the editor's fields and every card wait, since the remount
-  would drop what was typed meanwhile and a second reply would race the first. A download brings
-  no new version, so nothing waits for it.
+- **Save before action.** Apply (the replies) and download save a dirty form first; a failed save
+  stops the action, and the apply bar says why. The replies and download mutations live in
+  `DraftView`, above the form's key, like the save: a save before them, or their own answer,
+  brings a new version that remounts the form, and their pending state, their errors and what
+  each question card holds must outlive it. While a save or a batch of replies runs, the editor's
+  fields and every card wait, since the remount would drop what was typed meanwhile. A download
+  brings no new version, so nothing waits for it.
+- **Answer and Skip send nothing.** They mark a card as replied (an answer, or `null` for a skip)
+  in the one `{ drafts, replied }` object `DraftView` keeps above the form's key; the card folds to
+  its target, the reply in short and Change. The batch is built when Apply is pressed, from the
+  CV as cached after the save-first (a save that removed an item closed its questions), open
+  questions only, in the order of the list. On success the replies of the questions now closed
+  are dropped and "N replies applied" shows for a moment. A failed batch keeps every reply: after
+  a `409` / `404` the replies of questions no longer open go and the bar says that some questions
+  changed; a `400` opens the refused cards again with the server's message (`refusedReplies`
+  maps `details.fields` keys `replies.<index>…` back to question ids through the sent batch);
+  anything else keeps them all with the error in the bar.
 - **Leaving with unsaved changes:** a `beforeunload` prompt and a router blocker, both in the save
   bar. The blocker lets through a change of search params only (`?tab=`), the way to login (the
   session ended) and a navigation with the `discardEdits` state (the CV was deleted).
@@ -335,6 +351,7 @@ Context or a store.
 | A view choice a reload must keep | a URL search param, written with `replace` | `?tab=questions` on the CV screen; `?next=` on login; `?fromCvId=&role=` on New CV |
 | Form values and dirty state | React Hook Form | the editor, the New CV form |
 | An unsent form that must survive a reload | `sessionStorage`, read once on mount | New CV autosave (`model/autosave.ts`): saved through a `watch` callback, parsed back with a schema, cleared by `useCreateCv` after a create, even if the form is gone by then; every storage call is guarded, so blocked storage only means nothing is kept. The form from another CV is not kept |
+| Replies not applied yet | `localStorage` per user and CV (`entities/cv/model/storedReplies.ts`), read once on mount, written in an effect | the cards' drafts and the replied / skipped marks of the CV screen (`cv-replies:<userId>:<cvId>`): parsed back with a schema, pruned to the questions still open on load, the key removed once nothing is left (after an apply) and when the CV is deleted, from the list too (`useDeleteCv`); every storage call is guarded. The route passes the user's id down, so no key is written under an empty user |
 | Anything else in the UI | `useState` in the component that uses it | the two-step delete confirm, show / hide password |
 
 There is no global store. Context is not used for app state; the current user is read from the
@@ -374,7 +391,10 @@ Why it is built this way: [ADR 0003](adr/0003-mock-mode-outside-the-layers.md).
 - **Isolation.** `src/mocks` imports only the contract package. No layer of the app imports
   `src/mocks`. The app code is the same in both modes.
 - **Behaviour.** The handlers act like the API: ownership (`404`), allowed actions per status
-  (`409`), version conflict, validation, limits. The store keeps users, the session, CVs and
+  (`409`), version conflict, validation, limits. A batch of replies is checked whole before
+  anything is written, then applied in one pass with the contract's `applyAnswer` and one
+  `version + 1`; the mock never words an answer (it is the server's "as written" fallback), and
+  the UI cannot tell the difference, as the contract intends. The store keeps users, the session, CVs and
   questions in browser storage, and the fake worker advances a CV by elapsed time, so a reload
   loses nothing. The worker has no timers: every handler first moves each CV to where the clock
   says it is (`runWorker`). One CV runs at a time, one stage per polling interval; a keyword in
@@ -401,6 +421,13 @@ Why it is built this way: [ADR 0003](adr/0003-mock-mode-outside-the-layers.md).
 - A test does what a user does: it clicks and types through the DOM and asserts on visible text,
   roles and the URL. It never asserts on hook state, query keys, props or class names.
 - Time-based mock generation is driven with fake timers.
+- A request that must be seen in flight (the apply bar's "Updating your CV…") is held by a
+  `server.use` handler that awaits a gate promise and then returns nothing, so MSW falls through
+  to the real mock handler. A blocked storage is a `Storage.prototype` spy that throws only for
+  the app's own keys, so the mock store keeps working.
+- A new CV version remounts the editor, the panel and the bar, so a flow test looks every element
+  up afresh after an action that brings one, and waits with `waitFor` on a fresh lookup rather
+  than on an element it holds.
 - **Unit tests** are for pure functions with real logic and sit next to the file. The mock
   handlers are not tested on their own; the flow tests exercise them.
 - `vitest.setup.ts` at the package root registers the DOM matchers, cleans up after each test and

@@ -74,6 +74,7 @@ describe('Match', () => {
     })
     await user.click(within(skills).getByRole('button', { name: 'Kubernetes' }))
     await user.click(within(skills).getByRole('button', { name: 'Answer' }))
+    await user.click(screen.getByRole('button', { name: 'Apply 1 reply' }))
 
     expect(await screen.findByRole('meter', { name: 'Covers 5 of 5 requirements' })).toBeVisible()
   })
