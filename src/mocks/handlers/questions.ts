@@ -56,7 +56,7 @@ export const questionHandlers = [
         }
         if (reply.answer === null) {
           if (!(SKIPPABLE_KINDS as readonly string[]).includes(question.kind)) {
-            fields[`replies.${index}.answer`] = 'A confirmation must be answered yes or no'
+            fields[`replies.${index}.answer`] = 'A confirm question must be answered yes or no.'
           }
           checked.push({ question, answer: null })
           continue
