@@ -89,6 +89,7 @@ src/
         statusView.ts          status -> label, tone, allowed actions
         matchText.ts           "Covers 7 of 10 requirements", "Match 7/10"
         usage.ts               the limits, and a refusal for one, in words
+        storedReplies.ts       replies not applied yet, kept per user and CV in localStorage
       components/
         StatusPill.tsx
         MatchBar.tsx

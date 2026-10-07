@@ -23,6 +23,8 @@ afterEach(() => {
   resetDb()
   // The New CV form keeps itself here; a test starts with an empty form.
   sessionStorage.clear()
+  // Replies not applied yet are kept here; a test starts without any.
+  localStorage.clear()
 })
 
 afterAll(() => server.close())

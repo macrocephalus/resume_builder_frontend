@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiSend } from '@/shared/api/client'
 import { apiPaths } from '@/shared/config/paths'
 import { cvQueries } from '@/entities/cv/api/cvQueries'
+import { forgetStoredReplies } from '@/entities/cv/model/storedReplies'
 
 type Options = {
   /**
@@ -23,6 +24,7 @@ export function useDeleteCv({ onDeleted }: Options = {}) {
         cvs?.filter((cv) => cv.id !== id),
       )
       await onDeleted?.()
+      forgetStoredReplies(id)
       queryClient.removeQueries({ queryKey: cvQueries.detail(id).queryKey })
       queryClient.removeQueries({ queryKey: [...cvQueries.all(), 'statuses'] })
     },
