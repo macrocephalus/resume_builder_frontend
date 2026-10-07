@@ -243,7 +243,10 @@ Context or a store.
   (`useApplyReplies`): the body is checked with the contract's `repliesBodySchema` before it is
   sent, the returned CV is stored like a save's. The server words the answers, so the request can
   take seconds; the client sets no timeout of its own, the bar says the CV is being updated. A
-  `409` or `404` means a question closed elsewhere: the CV is refetched before the error is shown.
+  `409` or `404` means a question closed elsewhere, its item is gone, or the CV moved on: the CV
+  is refetched before the error is shown (`refreshWhenClosed`). If that fetch finds no CV either
+  (deleted in another tab or device), its detail is reset as polling does, the screen shows Not
+  found and the replies kept for it go.
 - **Where a mutation lives:** in the feature that uses it. `useDeleteCv` and `useRetryCv` live in
   `entities/cv/api`, because both the list and the CV screen use them.
 - **Polling:** `useCvStatusPolling(ids)` runs the statuses request on plain `useQuery` with a 3 s

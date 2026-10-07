@@ -13,7 +13,11 @@ import { useApplyReplies } from '@/features/cv-editor/api/useApplyReplies'
 import { useDownloadPdf } from '@/features/cv-editor/api/useDownloadPdf'
 import { useSaveCv } from '@/features/cv-editor/api/useSaveCv'
 import { DraftEditor } from '@/features/cv-editor/components/editor/DraftEditor'
-import { applyErrorText, refusedReplies } from '@/features/cv-editor/model/questionErrors'
+import {
+  applyErrorText,
+  isQuestionGone,
+  refusedReplies,
+} from '@/features/cv-editor/model/questionErrors'
 import { repliesFor, without, type ReplyState } from '@/features/cv-editor/model/replies'
 
 /** How long "N replies applied" stays on screen. */
@@ -70,6 +74,8 @@ export function DraftView({ cv, userId }: { cv: Cv; userId: string }) {
         // After a 409 the CV was fetched again (refreshWhenClosed): the replies of questions no
         // longer open go. A refused reply opens its card again, with the server's message.
         const fresh = queryClient.getQueryData(cvQueries.detail(cv.id).queryKey)
+        // No CV any more (deleted elsewhere): the screen turns to Not found, nothing to keep.
+        if (!fresh && isQuestionGone(error)) return
         const refusedNow = refusedReplies(error, batch)
         setRefused(refusedNow)
         setKept((current) => ({

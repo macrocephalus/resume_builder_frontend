@@ -420,6 +420,22 @@ describe('Applying and unsaved edits', () => {
 })
 
 describe('A failed batch', () => {
+  test('a CV deleted elsewhere opens Not found and forgets its replies', async () => {
+    const { cv, owner, user } = await openQuestions()
+    const key = storedRepliesKey(owner.id, cv.id)
+
+    await answerPhone(user)
+    expect(localStorage.getItem(key)).not.toBeNull()
+    updateDb((db) => {
+      db.cvs = db.cvs.filter((entry) => entry.cv.id !== cv.id)
+    })
+    await user.click(applyButton())
+
+    expect(await screen.findByRole('heading', { name: 'Page not found' })).toBeVisible()
+    expect(screen.queryByText(QUESTIONS_CHANGED)).toBeNull()
+    expect(localStorage.getItem(key)).toBeNull()
+  })
+
   test('a question closed elsewhere drops its reply and keeps the others', async () => {
     const { cv, user } = await openQuestions()
     updateDb((db) => {
