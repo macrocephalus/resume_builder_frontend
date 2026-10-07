@@ -330,6 +330,9 @@ describe('Applying', () => {
     expect(within(bar()).getByRole('button', { name: 'Clear' })).toBeDisabled()
     expect(within(card(SKILLS)).getByRole('button', { name: 'Answer' })).toBeDisabled()
     expect(within(card(CLAIM)).getByRole('button', { name: 'Yes, add it' })).toBeDisabled()
+    expect(within(card(SKILLS)).getByRole('button', { name: 'Kafka' })).toBeDisabled()
+    expect(within(card(SKILLS)).getByLabelText('Other, comma-separated')).toBeDisabled()
+    expect(within(card(ENGLISH)).getByRole('button', { name: 'C1' })).toBeDisabled()
     expect(screen.getByLabelText('About you')).toBeDisabled()
 
     release()

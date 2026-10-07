@@ -8,10 +8,12 @@ type AnswerControlsProps = {
   question: Question
   draft: AnswerDraft
   onChange: (draft: AnswerDraft) => void
+  /** A save or the batch is on the way: the inputs wait too. */
+  disabled: boolean
 }
 
 /** The inputs of a `text`, `choice` or `multi` question. */
-export function AnswerControls({ question, draft, onChange }: AnswerControlsProps) {
+export function AnswerControls({ question, draft, onChange, disabled }: AnswerControlsProps) {
   const picked = draft.picked ?? []
 
   if (question.kind === 'text') {
@@ -23,6 +25,7 @@ export function AnswerControls({ question, draft, onChange }: AnswerControlsProp
             value={draft.text ?? ''}
             maxLength={ANSWER_LIMITS.text}
             autoComplete="off"
+            disabled={disabled}
             onChange={(event) => onChange({ text: event.target.value })}
           />
         )}
@@ -45,12 +48,17 @@ export function AnswerControls({ question, draft, onChange }: AnswerControlsProp
     <>
       <div className="flex flex-wrap gap-2">
         {question.options.map((option) => (
-          <Chip key={option} pressed={picked.includes(option)} onClick={() => toggle(option)}>
+          <Chip
+            key={option}
+            pressed={picked.includes(option)}
+            disabled={disabled}
+            onClick={() => toggle(option)}
+          >
             {option}
           </Chip>
         ))}
         {multi ? null : (
-          <Chip pressed={picked.includes(OTHER)} onClick={() => toggle(OTHER)}>
+          <Chip pressed={picked.includes(OTHER)} disabled={disabled} onClick={() => toggle(OTHER)}>
             Other
           </Chip>
         )}
@@ -63,6 +71,7 @@ export function AnswerControls({ question, draft, onChange }: AnswerControlsProp
               value={draft.other ?? ''}
               maxLength={ANSWER_LIMITS.text}
               autoComplete="off"
+              disabled={disabled}
               onChange={(event) => onChange({ ...draft, other: event.target.value })}
             />
           )}

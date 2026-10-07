@@ -89,7 +89,12 @@ export function QuestionCard({
         </>
       ) : (
         <>
-          <AnswerControls question={question} draft={draft} onChange={onDraftChange} />
+          <AnswerControls
+            question={question}
+            draft={draft}
+            onChange={onDraftChange}
+            disabled={locked}
+          />
           <div className="flex flex-wrap gap-2">
             <Button
               size="sm"
