@@ -397,6 +397,29 @@ describe('Applying and unsaved edits', () => {
     expect(tab(/^Questions · 3$/)).toBeVisible()
   })
 
+  test('a save that closes every replied question sends nothing and says why', async () => {
+    const { cv, owner, user } = await openQuestions()
+    const { sent } = requests()
+
+    await user.click(within(card(CLAIM)).getByRole('button', { name: 'Yes, add it' }))
+    await user.click(
+      within(screen.getByRole('group', { name: 'Job 1' })).getByRole('button', { name: 'Remove' }),
+    )
+    await user.click(applyButton())
+
+    expect(
+      await screen.findByText(
+        'Not applied: your saved edits removed what those questions were about, so they are closed.',
+      ),
+    ).toBeVisible()
+    expect(sent).toEqual([`PATCH /api/cvs/${cv.id}`])
+    expect(within(bar()).getByRole('button', { name: /^Apply/ })).toBeDisabled()
+    expect(localStorage.getItem(storedRepliesKey(owner.id, cv.id))).toBeNull()
+
+    await user.click(within(bar()).getByRole('button', { name: 'Clear' }))
+    expect(queryBar()).toBeNull()
+  })
+
   test('a save that closes a replied question leaves that reply out of the batch', async () => {
     const { cv, user } = await openQuestions()
     const { sent, bodies } = requests()

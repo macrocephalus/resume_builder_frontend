@@ -11,6 +11,10 @@ export const isQuestionGone = (error: unknown) =>
 
 export const questionGoneText = 'Some questions changed — check your replies and apply again.'
 
+/** The save before the batch removed what every replied question was about, so it closed them. */
+export const closedByEditsText =
+  'Not applied: your saved edits removed what those questions were about, so they are closed.'
+
 export const refusedText = 'Not applied: check the marked replies and apply again.'
 
 /** Why the batch did not go through, for the apply bar. */

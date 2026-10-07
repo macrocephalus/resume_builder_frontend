@@ -15,6 +15,7 @@ import { useSaveCv } from '@/features/cv-editor/api/useSaveCv'
 import { DraftEditor } from '@/features/cv-editor/components/editor/DraftEditor'
 import {
   applyErrorText,
+  closedByEditsText,
   isQuestionGone,
   refusedReplies,
 } from '@/features/cv-editor/model/questionErrors'
@@ -46,9 +47,13 @@ export function DraftView({ cv, userId }: { cv: Cv; userId: string }) {
   }, [storageKey, kept])
   const [refused, setRefused] = useState<Record<string, string>>({})
   const [applied, setApplied] = useState<number | null>(null)
+  // The save before a batch closed every replied question: nothing was sent. Kept up here, since
+  // that save remounts the panel.
+  const [closedByEdits, setClosedByEdits] = useState(false)
 
   const saveEdits = (body: PatchCvBody) => {
     apply.reset()
+    setClosedByEdits(false)
     // A failed download was about the version before; the button stays to try again.
     pdf.reset()
     save.mutate(body)
@@ -59,7 +64,16 @@ export function DraftView({ cv, userId }: { cv: Cv; userId: string }) {
     // from the CV as it is now.
     const latest = queryClient.getQueryData(cvQueries.detail(cv.id).queryKey) ?? cv
     const batch = repliesFor(latest.questions, kept.replied)
-    if (batch.length === 0) return
+    if (batch.length === 0) {
+      // The replies of the closed questions go, and the bar says why nothing was sent.
+      setKept((current) => ({
+        drafts: onlyOpen(current.drafts, latest.questions),
+        replied: onlyOpen(current.replied, latest.questions),
+      }))
+      setClosedByEdits(true)
+      return
+    }
+    setClosedByEdits(false)
     setRefused({})
     apply.mutate(batch, {
       onSuccess: (next) => {
@@ -96,20 +110,27 @@ export function DraftView({ cv, userId }: { cv: Cv; userId: string }) {
       setKept((current) => ({ ...current, drafts: { ...current.drafts, [questionId]: draft } })),
     onReply: (questionId, answer) => {
       apply.reset()
+      setClosedByEdits(false)
       setRefused((current) => without(current, [questionId]))
       setKept((current) => ({ ...current, replied: { ...current.replied, [questionId]: answer } }))
     },
     onChange: (questionId) => {
       apply.reset()
+      setClosedByEdits(false)
       setKept((current) => ({ ...current, replied: without(current.replied, [questionId]) }))
     },
     onClear: () => {
       apply.reset()
+      setClosedByEdits(false)
       setRefused({})
       setKept((current) => ({ ...current, replied: {} }))
     },
     applying: apply.isPending,
-    error: apply.error ? applyErrorText(apply.error, apply.variables ?? []) : null,
+    error: apply.error
+      ? applyErrorText(apply.error, apply.variables ?? [])
+      : closedByEdits
+        ? closedByEditsText
+        : null,
     refused,
     applied,
   }
@@ -118,6 +139,7 @@ export function DraftView({ cv, userId }: { cv: Cv; userId: string }) {
     save.reset()
     pdf.reset()
     apply.reset()
+    setClosedByEdits(false)
     setDiscards((count) => count + 1)
   }
 

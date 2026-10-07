@@ -335,7 +335,9 @@ Context or a store.
   in the one `{ drafts, replied }` object `DraftView` keeps above the form's key; the card folds to
   its target, the reply in short and Change. The batch is built when Apply is pressed, from the
   CV as cached after the save-first (a save that removed an item closed its questions), open
-  questions only, in the order of the list. On success the replies of the questions now closed
+  questions only, in the order of the list. If that save closed every replied question, nothing
+  is sent: their replies go and the bar says so (the notice lives in `DraftView`, since the save
+  remounted the panel). On success the replies of the questions now closed
   are dropped and "N replies applied" shows for a moment. A failed batch keeps every reply: after
   a `409` / `404` the replies of questions no longer open go and the bar says that some questions
   changed; a `400` opens the refused cards again with the server's message (`refusedReplies`
