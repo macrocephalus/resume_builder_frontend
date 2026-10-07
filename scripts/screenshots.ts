@@ -77,6 +77,24 @@ const screens: Screen[] = [
     },
   },
   {
+    name: 'cv-questions-replied',
+    path: '/',
+    signedIn: true,
+    act: async (page) => {
+      await page.getByRole('link', { name: 'Open' }).first().click()
+      await page.getByLabel('CV title').waitFor()
+      const questions = page.getByRole('button', { name: /^Questions/ })
+      if (await questions.isVisible()) await questions.click()
+      // One card answered, one skipped: the folded lines and the apply bar. The first card is
+      // the phone question (text); once it folds, the first Skip belongs to the next card.
+      await page.getByLabel('Your answer').fill('+380 67 123 45 67')
+      await page.getByRole('button', { name: 'Answer' }).first().click()
+      await page.getByRole('button', { name: 'Skip' }).first().click()
+      await page.getByRole('region', { name: 'Apply replies' }).waitFor()
+    },
+    viewportOnly: true,
+  },
+  {
     name: 'cv-match',
     path: '/',
     signedIn: true,
