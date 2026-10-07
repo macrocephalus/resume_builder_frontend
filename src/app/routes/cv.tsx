@@ -20,8 +20,9 @@ export function Component() {
   const { data: userId } = useQuery({ ...authQueries.me(), select: (user) => user?.id ?? null })
   // An anonymous visitor is on the way to login (the protected loader): nothing to show meanwhile.
   if (!userId) return null
-  // Keyed by id, so moving to another CV starts its screen afresh.
-  return <CvScreen key={cvId} cvId={cvId} userId={userId} />
+  // Keyed by user and id, so moving to another CV, or another user signing in on another tab,
+  // starts the screen afresh: replies are never kept under a user who did not write them.
+  return <CvScreen key={`${userId}:${cvId}`} cvId={cvId} userId={userId} />
 }
 
 export const ErrorBoundary = RouteError

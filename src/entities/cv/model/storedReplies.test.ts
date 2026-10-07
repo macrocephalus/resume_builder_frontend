@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import {
+  forgetAllStoredReplies,
   forgetStoredReplies,
   loadStoredReplies,
   onlyOpen,
@@ -120,5 +121,23 @@ describe('forgetStoredReplies', () => {
     expect(storage.getItem(storedRepliesKey('u2', 'cv1'))).toBeNull()
     expect(storage.getItem(storedRepliesKey('u1', 'cv2'))).not.toBeNull()
     expect(storage.getItem('other:cv1')).toBe('kept')
+  })
+})
+
+describe('forgetAllStoredReplies', () => {
+  test('drops the replies of every user and CV and nothing else', () => {
+    const storage = memoryStorage()
+    saveStoredReplies(storedRepliesKey('u1', 'cv1'), replies, storage)
+    saveStoredReplies(storedRepliesKey('u2', 'cv2'), replies, storage)
+    storage.setItem('ai-cv-builder:mock-db', 'kept')
+
+    forgetAllStoredReplies(storage)
+
+    expect(storage.length).toBe(1)
+    expect(storage.getItem('ai-cv-builder:mock-db')).toBe('kept')
+  })
+
+  test('a blocked storage is tolerated', () => {
+    expect(() => forgetAllStoredReplies(blockedStorage())).not.toThrow()
   })
 })

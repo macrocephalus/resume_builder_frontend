@@ -588,6 +588,18 @@ describe('Replies kept in the browser', () => {
     expect(localStorage.getItem(key)).toBeNull()
   })
 
+  test('logging out forgets the replies kept in this browser', async () => {
+    const { cv, owner, user } = await openQuestions()
+    const key = storedRepliesKey(owner.id, cv.id)
+
+    await answerPhone(user)
+    expect(localStorage.getItem(key)).not.toBeNull()
+    await user.click(screen.getByRole('button', { name: 'Log out' }))
+
+    expect(await screen.findByRole('heading', { name: 'Log in' })).toBeVisible()
+    expect(localStorage.getItem(key)).toBeNull()
+  })
+
   test('a blocked storage still lets the user reply and apply', async () => {
     const blocked = (key: string) => {
       if (key.startsWith('cv-replies:')) throw new DOMException('Blocked', 'SecurityError')

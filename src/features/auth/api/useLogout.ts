@@ -2,9 +2,13 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router'
 import { apiSend } from '@/shared/api/client'
 import { apiPaths, paths } from '@/shared/config/paths'
+import { forgetAllStoredReplies } from '@/entities/cv/model/storedReplies'
 import { authQueries } from '@/features/auth/api/authQueries'
 
-/** Clears the cookie through the API, opens the login screen, then empties the query cache. */
+/**
+ * Clears the cookie through the API, opens the login screen, then empties the query cache and
+ * the replies kept in this browser.
+ */
 export function useLogout() {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
@@ -16,6 +20,7 @@ export function useLogout() {
       queryClient.setQueryData(authQueries.me().queryKey, null)
       await navigate(paths.login(), { replace: true })
       queryClient.clear()
+      forgetAllStoredReplies()
     },
   })
 }

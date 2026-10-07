@@ -79,16 +79,28 @@ export function saveStoredReplies(
   }
 }
 
-/** The CV is gone: its replies go too, whoever kept them. */
-export function forgetStoredReplies(cvId: string, storage = localStore()): void {
+/** Removes every kept entry whose key passes `pick`. */
+function forgetWhere(pick: (key: string) => boolean, storage: Storage | null): void {
   try {
     if (!storage) return
-    const suffix = `:${cvId}`
     for (let index = storage.length - 1; index >= 0; index -= 1) {
       const key = storage.key(index)
-      if (key?.startsWith(PREFIX) && key.endsWith(suffix)) storage.removeItem(key)
+      if (key?.startsWith(PREFIX) && pick(key)) storage.removeItem(key)
     }
   } catch {
     // Nothing to forget that could be read back.
   }
+}
+
+/** The CV is gone: its replies go too, whoever kept them. */
+export function forgetStoredReplies(cvId: string, storage = localStore()): void {
+  forgetWhere((key) => key.endsWith(`:${cvId}`), storage)
+}
+
+/**
+ * Log out: the replies of every user and CV go, so what was typed (a phone number) does not stay
+ * on a shared device.
+ */
+export function forgetAllStoredReplies(storage = localStore()): void {
+  forgetWhere(() => true, storage)
 }
